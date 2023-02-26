@@ -34,7 +34,7 @@ Notes sometimes ramble as I describe learnings or changes in approach.
 
 ** File Naming
 
-Each chapters problems and solutions are in files named ch99-probs.scm. Larger or optional work is still tied to a chapter, as in ch05-tictac.scm.
+Each chapter's problems and solutions are in files named ch99-probs.scm. Larger or optional work is still tied to a chapter, as in ch05-tictac.scm.
 
 File scheming.scm contains common definitions and Scheme notes accumulated while working through the text. This file is generally copied at the head of each work file.
 

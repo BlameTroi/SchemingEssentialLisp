@@ -159,8 +159,8 @@ by player."
 (define (tt-computer-mark)
   "Symbol selected as computer mark for game. It is the
 symbol the player didn't choose."
-  (cond ((equal? 'X *tt-player-mark*) ('O))
-        (else 'X)))
+  (cond ((equal? 'X *tt-player-mark*) 'O)
+        (else                         'X)))
 
 
 (define (tt-row r)
@@ -336,26 +336,32 @@ row and column number."
    (else                          '(0 0))))
 
 
+(define (tt-upd-row r c mark)
+  "Helper for tt-mark-cell, update a column in a row with
+mark. Returns a new row."
+  (cond
+   ((= 1 c) (list mark             (cadr (tt-row r)) (caddr (tt-row r))))
+   ((= 2 c) (list (car (tt-row r)) mark              (caddr (tt-row r))))
+   (else    (list (car (tt-row r)) (cadr (tt-row r)) mark))))
+
+
 (define (tt-mark-cell r c mark)
   "Mark a cell on *tt-game-board*"
   (cond
-   ((= 1 r) (set! *tt-game-board* (list () (cadr *tt-game-board*) (caddr *tt-game-board*))))
-   ((= 2 r) (set! *tt-game-board* (list (car *tt-game-board*) () (caddr *tt-game-board*))))
-   (else    (set! *tt-game-board* (list (car *tt-game-board*) (cadr *tt-game-board*) ()))))
+   ((= 1 r) (set! *tt-game-board* (list (tt-upd-row r c mark) (cadr *tt-game-board*) (caddr *tt-game-board*))))
+   ((= 2 r) (set! *tt-game-board* (list (car *tt-game-board*) (tt-upd-row r c mark)  (caddr *tt-game-board*))))
+   (else    (set! *tt-game-board* (list (car *tt-game-board*) (cadr *tt-game-board*) (tt-upd-row r c mark)))))
   )
 
 
 (define (tt-computer-move rc)
-  "Mark the computer's move on the board and report if we
-have a winner."
+  "Mark the computer's move on the board."
   (cond
    ((not (tt-cell-valid? (car rc) (cadr rc))) (tt-disp "Invalid move."))
    ((not (tt-cell-open? (car rc) (cadr rc)))  (tt-disp "Invalid move."))
    (else
-    (tt-disp (string-join (list "Computer move:" (list->string rc))))
-
-  )))
-
+    (tt-disp (string-join (list "Computer move:" (number->string (car rc)) "," (number->string (cadr rc)))))
+    (tt-mark-cell (car rc) (cadr rc) (tt-computer-mark)))))
 
 
 (define (tt-move r c)
@@ -368,11 +374,13 @@ when there is a winner or stalemate."
    ((not (tt-cell-open? r c))  (tt-disp "Sorry, that cell is taken."))
    (else
     (tt-disp "Legal move.")
-    (tt-mark-cell r c tt-player-mark)
+    (tt-mark-cell r c (tt-player-mark))
     (tt-display-board)
     (if (tt-winner?)
         (tt-disp "You win!")
         (begin
           (tt-computer-move (tt-computer-selection))
-    (if #t 0 1
-        ))))
+          (tt-display-board)
+          (if (tt-winner?)
+              (tt-disp "Ha! Computer wins!")
+              (tt-disp "Your move.")))))))
