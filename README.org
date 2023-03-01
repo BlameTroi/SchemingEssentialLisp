@@ -21,6 +21,61 @@ Here are some of the mechanical or textual replacements to help as you through t
   - Scheme does not have a nil symbol.
   - Scheme does not have a last function.
   - Scheme does not have an atom predicate, atomp in Lisp, atom? in Scheme.
+- The booleans t and f are #t and #f in Scheme.
+- On a default condition under cond, where the text uses (t ...) use (else ...) for clarity. (#t ...) works but else seems more common.
+
+** Differences that matter to the text, but not to the world at large
+
+Some of the more difficult things to work around from the text. There's nothing conceptually difficult, but names and availability invalidate a few sections of the text.
+
+*** Pretty Printing
+
+In Scheme, pretty-print spelled out and not abbreviated pp. You could define a synonym but the default display of lists and atoms is quite readable. The pretty-print function does not display the source code of a function. The various alternative forms presented in chapter two do not work.
+
+As you should be using and editor to write code, this should not present a problem.
+
+*** Macros
+
+Scheme is a Lisp descendant and has macros. The syntax is different and they are not really required until chapter 13 of the text. Up to chapter 12 ignore the proposed macro replacements for differing functions in the various Lisps in common use when the text was written. Notes in the chapter specific scheme code files will provide alternative functions.
+
+*** Debugging
+
+The discussion of specific debugging commands in chapter 4 notes that the commands will differ across implementations. Guile provides a back-trace command that I found offers limited help. Appreviated ,bt in the REPL. The code written for the text comprehensible enough that a dedicated debugger should not be needed for the exercises.
+
+Do actually read, not not just skim, any error messages offered.
+
+*** Input and Output
+
+The function names and behaviors are all different. You can generally replace one name with another and things will work.
+
+| Text Function Name | Scheme Equivalent | Notes                    |
+|--------------------+-------------------+--------------------------|
+| print              | display           | Does not return argument |
+|                    |                   | Does not insert newline  |
+| read               | read              | Must enable readline     |
+|                    |                   | Can lock up Geiser Emacs |
+| princ              | display           |                          |
+| terpri             | newline           |                          |
+
+At least in Guile, the read function requires that you enable readline if you want it to accept more than a single self defining atom. On Linux this is best done in an initialization file, by convention $HOME/.guile, containing Scheme expressions:
+
+(use-modules (ice-9 readline))
+(activate-readline)
+(use-modules (ice-9 pretty-print))
+
+Using read in a Geiser REPL session often locks up Emacs. For testing functions that require more than a single atom of input I use the Guile REPL in a terminal session.
+
+*** Lisp prog/return versus let
+
+Scheme doesn't have anything like prog and return. This is by design. Use the various forms of let.
+
+*** Looping without loop
+
+Scheme doesn't have the loop form. Scheme expects you to use recursion. The best Scheme alternative I found was the while form:
+
+(while (test) body...)
+
+See ch06-probs.scm for examples.
 
 ** Environment
 
