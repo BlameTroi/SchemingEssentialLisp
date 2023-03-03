@@ -57,3 +57,9 @@ some tests."
    ((not (list? x)) #t)
    ((nil? x)        #t)
    (else            #f)))
+
+
+;; To make up for the missing alphalesserp from the text:
+(define (symbol< x y) (string< (symbol->string x) (symbol->string y)))
+(define (symbol= x y) (string= (symbol->string x) (symbol->string y)))
+(define (symbol> x y) (string> (symbol->string x) (symbol->string y)))
