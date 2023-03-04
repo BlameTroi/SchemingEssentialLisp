@@ -63,3 +63,28 @@ some tests."
 (define (symbol< x y) (string< (symbol->string x) (symbol->string y)))
 (define (symbol= x y) (string= (symbol->string x) (symbol->string y)))
 (define (symbol> x y) (string> (symbol->string x) (symbol->string y)))
+
+
+;; Ran across a need for this elsewhere and am including it in
+;; case I need it again.
+(define (rotate xs)
+  "Rotate the items in list XS by moving (car XS) to the end of XS."
+  (cond ((or (null? xs) (null? (cdr xs))) xs)
+        (else (append (cdr xs) (xst (car xs))))))
+
+
+;; For timing operations. Example (duration '(permut '(a b c))).
+;; The operation should be quoted. The time is a pair: (seconds
+;; since 1970 . microseconds).
+(define (duration x)
+  "Time the duration of sexp X using time of day.
+You need to quote X."
+  (let ((start '(0 . 0)) (stop '(0 . 0)) (capture '()))
+    (set! start (gettimeofday))
+    (set! capture (eval x (interaction-environment)))
+    (set! stop (gettimeofday))
+    (display capture)(newline)
+    (display "start at: ")(display start)(newline)
+    (display " stop at: ")(display stop)(newline)
+    ;; todo, calculate difference
+    ))
