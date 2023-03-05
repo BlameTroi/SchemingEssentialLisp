@@ -70,7 +70,7 @@ some tests."
 (define (rotate xs)
   "Rotate the items in list XS by moving (car XS) to the end of XS."
   (cond ((or (null? xs) (null? (cdr xs))) xs)
-        (else (append (cdr xs) (xst (car xs))))))
+        (else (append (cdr xs) (list (car xs))))))
 
 
 ;; For timing operations. Example (duration '(permut '(a b c))).

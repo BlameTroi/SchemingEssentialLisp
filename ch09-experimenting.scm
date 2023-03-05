@@ -161,3 +161,216 @@ but if 61 was search key
    ((= k (car n))   #t)
    ((< k (car n))   (bsearch-r k t (assoc (cadr n) t)))
    (else            (bsearch-r k t (assoc (caddr n) t)))))
+
+
+;; 9.12 Optional: determine if a list is a generalized set. A list is
+;;      a set only if there are no repeated elements. Subsets can be
+;;      elements of a set, but all of the subsets must also be
+;;      generalized sets.
+;;
+;;      (genset '((a (b (c))) (b (c)))) ==> #t
+;;      (genset '((a (b (c)) ((c) b)))) ==> #f, (b (c)) and ((c) b) are the
+;;      (genset '((a (b (c) (d (e)))) (b ((e) d) (c)) a b)) ==> #t
+;;      (genset '((a (b (c) (d (e)))) ((b ((e) d) (c) a b)))) ==> #f, b repeats
+;;                                     (b ------- --- a b)
+;;
+;; The text advises that "a number of helper functions" will be
+;; required.
+
+
+;; how to tell if a list is equal to another?
+(equal? '(a (b (c))) '(a (b (c)))) ==> #t
+(equal? '(a (b (c))) '(a ((c) b))) ==> #f
+;; so, while order doesn't matter for a set, it does for list
+;; equality, which makes sense.
+
+;; problem one then is to order all the atoms in a list, and
+;; the sublists
+(symbol->string 'a)
+(symbol->string 1)
+(symbol? 1) #f
+(symbol? 'a) #t
+(define a 'a)
+(define b 1)
+(symbol? a) #t
+(symbol? b) #f
+
+
+;; constraint -- assume lists are made up of only symbols
+;; for purposes of this problem
+
+;; collect all symbols from a list, if a duplicate encountered, not a set
+;; case 1, no sublists, one duplicate symbol
+(define xs '(a b c d a e f g))
+
+
+(define (homogeneous? xs)
+  "Are the elements of list XS all of the same type (symbol, number,
+boolean, list, etc.)?"
+  (cond
+   ((null? xs) #t)
+   ((null? (cdr xs)) #t)
+   ((not (equal? (type (car xs)) (type (cadr xs)))) #f)
+   (else (homogeneous? (cdr xs)))))
+
+(homogeneous? '(1 2 3)) ==> #t
+(homogeneous? '(a b c)) ==> #t
+(homogeneous? '(a b 1)) ==> #f
+(homogeneous? '((a b) (c d))) ==> #t
+(homogeneous? '((a b) (c d) ())) ==> #t, we'll treat () as a list
+
+;; We need function pointers, but lacking having been shown how to
+;; do them yet.
+
+;; this doesn't work until items are grouped homogeneously?
+
+(define (add-to-grouped-list x xs)
+  "Add item X to XS in proper group order."
+  (display ">add-to-grouped-list ")(display x)(display " ")(display xs)(newline)
+  (cond ((null? xs)     (list x))
+        ((compare-type< x (car xs))     (cons x xs))
+        (else                           (cons (car xs) (add-to-grouped-list x (cdr xs))))))
+
+
+
+
+
+(define (grouper-types xin xout)
+  "Group the list XIN into XOUT."
+  (display ">grouper-types ")(display xin)(display " ")(display xout)(newline)
+  (cond ((null? xin) xout)
+        (else        (grouper-types (cdr xin) (add-to-grouped-list (car xin) xout)))))
+
+(define (group xs)
+  "Group items of like types in XIN into XOUT."
+  (grouper-types xs '()))
+
+
+
+;; type precedence
+;; ()
+;; boolean
+;; number
+;; symbol
+;; string
+;; list
+
+
+(define (compare-data< x y)
+  (cond
+   ((null? x) #t) ;; nulls sort first, always
+   ((null? y) #f)
+   ;; deal with homogenous arguments first
+   ((and (boolean? x) (boolean? y)) ;; #f before #t
+    (cond ((not x) #t)
+          (else    #f)))
+   ((and (number? x) (number? y)) (< x y))
+   ((and (symbol? x) (symbol? y)) (symbol< x y))
+   ((and (string? x) (string? y)) (string< x y))
+   ((and (list? x) (list? y))     #t) ;; lists preserve order encountered
+   ;; now deal with heterogenous arguments
+   ((boolean? x) #t)
+   ((number? x) #t)
+   ((symbol? x) #t)
+   ((string? x) #t)
+   ;; anyting else sorts last
+   (else #f)))
+
+
+(define (lc< x y)
+  (cond
+   ((null? x) #t)
+   ((null? y) #f)
+   ((< (length x) (length y)) #t)
+   ((< (length y) (length x)) #f)
+   (else          (compare< (car x) (car y)))))
+
+
+;; Comparison helper for sorting dissimilar types.
+(define (type x)
+  "Return a symbol representing the type of X."
+  (cond
+   ((null? x)    't-null)
+   ((symbol? x)  't-symbol)
+   ((number? x)  't-tnumber)
+   ((boolean? x) 't-boolean)
+   ((string? x)  't-string)
+   ((list? x)    't-list)
+   (else         't-unknown)))
+
+
+;; To make up for the missing alphalesserp from the text:
+(define (symbol< x y) (string< (symbol->string x) (symbol->string y)))
+(define (symbol= x y) (string= (symbol->string x) (symbol->string y)))
+(define (symbol> x y) (string> (symbol->string x) (symbol->string y)))
+
+
+;; Less than comparison that orders by type name then contents.
+(define (compare< x y)
+  "Compare two elements for ordering. If they are of the same type,
+use the appropriate form of <. If they are of different types, order
+by their name names."
+  (display ">compare< ")(display x)(display " ")(display y)(newline)
+  (cond
+   ((and (boolean? x) (boolean? y)) (not x)) ;; #f before #t
+   ((and (number? x) (number? y))   (< x y))
+   ((and (symbol? x) (symbol? y))   (symbol< x y))
+   ((and (string? x) (string? y))   (string< x y))
+   ;; TODO: lists! need a definition? certainly length will be involved
+   ;; TODO: then possibly member by member?
+   ;; TODO: there be recursion here
+   (else                            (symbol< (type x) (type y)))))
+
+
+(define (add-to-sorted-list x xs)
+  "Add item X to XS in proper order. See compare< and compare= for
+the definition of that order."
+  ;; (display ">add-to-sorted-list ")(display x)(display " ")(display xs)(newline)
+  (cond ((null? xs)             (list x))
+        ((compare< x (car xs))  (cons x xs))
+        (else                   (cons (car xs) (add-to-sorted-list x (cdr xs))))))
+
+
+(define (hetero-sorter xin xout)
+  "Sort the list XIN into XOUT."
+  (display ">hetero-sorter ")(display xin)(display " ")(display xout)(newline)
+  (cond ((null? xin) xout)
+        ((list? (car xin)) (hetero-sorter (cdr xin) (add-to-sorted-list (hetero-sort (car xin)) xout)))
+        (else        (hetero-sorter (cdr xin) (add-to-sorted-list (car xin) xout)))))
+
+
+(define (hetero-sort xs)
+  "Sort items in list XS. The items may be of varying type and the
+sort groups like types together. The sort should be stable."
+  (display ">hetero-sort ")(display xs)(newline)
+  (hetero-sorter xs '()))
+
+
+(define (dups-in? xs)
+  "Does list XS, which may be heterogeneous but must be ordered by
+element value within type, contain any duplicate elements? Returns
+a Boolean.
+
+The equal? predicate works as desired on nested lists as long as
+the elements within the lists are ordered consistently."
+  ;; (display ">dups-in? ")(display xs)(newline)
+  (cond
+   ((null? xs)                  #f)
+   ((not (list? xs))            #f)
+   ((and (= 1 (length xs))
+         (list? (car xs)))      (dups-in? (car xs)))
+   ((= 1 (length xs))           #f)
+   ((equal? (car xs) (cadr xs)) #t)
+   (else                        (or (dups-in? (car xs))
+                                    (dups-in? (cdr xs))))))
+
+
+(define (genset xs)
+  "Is list XS a generalized set? That is, there are no duplicate
+elements at the same level? '(a (a)) is a generalized set, (a a)
+is not.
+
+Elements may be Booleans, symbols, strings, lists, and numbers.
+
+Returns a Boolean."
+  (not (dups-in? (sort xs))))
