@@ -232,9 +232,6 @@ boolean, list, etc.)?"
         (else                           (cons (car xs) (add-to-grouped-list x (cdr xs))))))
 
 
-
-
-
 (define (grouper-types xin xout)
   "Group the list XIN into XOUT."
   (display ">grouper-types ")(display xin)(display " ")(display xout)(newline)
@@ -365,12 +362,48 @@ the elements within the lists are ordered consistently."
                                     (dups-in? (cdr xs))))))
 
 
-(define (genset xs)
-  "Is list XS a generalized set? That is, there are no duplicate
-elements at the same level? '(a (a)) is a generalized set, (a a)
-is not.
+(define (do-test)
+  (do
+      ((i 1 (1+ i))) ;; variable update list ( (name init increment) ... )
+      ((> i 4) (newline) #t)      ;; exit test plus any return value ((test) value)
+    (display i)      ;; optional loop body
+    (display '*)
+    )
+  )
 
-Elements may be Booleans, symbols, strings, lists, and numbers.
 
-Returns a Boolean."
-  (not (dups-in? (sort xs))))
+(define (list-abs xs)
+  (do
+      (
+       (xin xs (cdr xin))
+       (xout '() (cons (abs (car xin)) xout))
+       )
+      (
+       (null? xin)
+       (reverse xout)
+       )
+    )
+  )
+
+(list-abs '(-1 7 -32 8))
+
+
+(define (over x xs)
+  "return all in xs > x"
+  (do ((xin xs (cdr xin))
+       (xout '() (cond
+                  ((> (car xin) x) (display "*")(cons (car xin) xout))
+                  (else (display "+") xout))))
+      ((null? xin) xout)))
+
+
+(over 10 '(12 10 9 8 7 11 10 9 8))
+
+
+(define (over x xs)
+  "return all in xs > x"
+  (do ((xin xs (cdr xin))
+       (xout '() (if (> (car xin) x)
+                      (cons (car xin) xout)
+                      xout)))
+      ((null? xin) xout)))
