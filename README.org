@@ -85,13 +85,20 @@ Lisp and Scheme come in many accents. This work was done using GNU Guile 3.0 on 
 
 These files exercises, helpers, and notes all combined. Rather than using org-babel or a more formal literate programming structure, notes and instructions are in the form of Lisp comments using the double semicolon form. Files read from top to bottom and definitions/solutions are often followed by simple tests. With Geiser running, the definitions and tests can be evaluated and any output captured and pasted as verification of the solution.
 
-Notes sometimes ramble as I describe learnings or changes in approach.
+I've made an effort to format the chapter problem files so that they can be loaded by a REPL without error. C-c C-b in Emacs with Geiser running, or (load "ch99-probs.scm") in a REPL session on a terminal.
+
+Most problem solutions have test cases following the code. These are
+commented expressions with the output noted. The format is:
+
+;; (sexp to test problem) ==> result of evaluating the sexp
+
+Notes in any of the .scm files sometimes ramble as I describe learnings or changes in approach.
 
 ** File Naming
 
-Each chapter's problems and solutions are in files named ch99-probs.scm. Larger or optional work is still tied to a chapter, as in ch05-tictac.scm.
+Each chapter's problems and solutions are in files named ch99-probs.scm. Some problems, particularly end of chapter optional problems, are complex enough that I put them in their own files. ch05-tictac.scm is one such file.
 
-File scheming.scm contains common definitions and Scheme notes accumulated while working through the text. This file is generally copied at the head of each work file.
+In addition to the chapter problem files, there are scheming.scm which holds definitions for things the text uses that aren't directly in Scheme, and doodling.scm which is just a scratch pad of code snippets as I work through the text.
 
 ** Licensing
 
