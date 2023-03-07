@@ -3,7 +3,7 @@
 
 ;; Finally, variables and i/o!
 
-;; these are in guile/scheme not cl
+;; These are in Guile Scheme not Common Lisp.
 
 
 ;; Helpers for functions that aren't in Guile, or that I have
@@ -55,6 +55,9 @@ some tests."
    ((nil? x) #t)
    (else #f)))
 
+;;;
+;;; General notes:
+;;;
 
 ;; In chapter 5, we start on basic input output. implementation
 ;; differences are going to mess up some of the examples.
@@ -65,46 +68,50 @@ some tests."
 ;;   the difference.
 
 
-;; It appears read may not play nice with the geiser repl. More
-;; experimentation needed. It seems to work ok in the guile
+;; It appears read may not play nice with the Geiser repl. More
+;; experimentation needed. It seems to work ok in the Guile
 ;; repl running in a terminal.
+;;
+;; After a lot of head scratching and experimenting, I think
+;; the best approach for anything involving the read function
+;; is to do the actual testing in the Guile repl outside of
+;; Emacs. Be sure to enable readline. See README.org in this
+;; repository for how to enable readline by default.
 
-;; OK, from further testing it looks as if it works OK in the
-;; repl buffer but you can't invoke anything doing a read (or
-;; likely a display) from a code buffer. Write here, test in
-;; the terminal or repl buffer.
 
-;; (list (read)) will read up until <enter> but only returns
-;; one atom for inclusion in the list. Subsequent atoms are
-;; processed by the guile listener in my testing.  Doing just
-;; read and entering a list properly (...) seems to work well
-;; enough.
-
+;;;
+;;; The problems:
+;;;
 
 ;; 5.1 Define function read-aver-3 taking no arguments. It
 ;;     reads three items, sums them, and returns the
 ;;     average.
+
 (define (read-aver-3)
   "Read three numbers and average them."
   (/ (+ (read) (read) (read)) 3))
-(read-aver-3) ==> 1 2 3 ==> 2
+
+;; (read-aver-3) ==> 1 2 3 ==> 2
 
 
 ;; 5.2 Define function read-combine which takes a list as
 ;;     its argument. It then reads in another list and
 ;;     replaces the first element of its argument list
 ;;     with the first element of the read list.
+
 (define (read-combine lis)
   "Replace first element of LIS with the first element
 of a list read from the terminal."
   (cons (car (read)) (cdr lis)))
-(read-combine '(a b c d)) ==> (A B C D) ==> (A b c d)
+
+;; (read-combine '(a b c d)) ==> (A B C D) ==> (A b c d)
 
 
 ;; 5.3 Define a function print-pal that takes two
 ;;     lists as arguments, and prints out the
 ;;     palindromes of each list and the palindrome
 ;;     of both lists appended.
+
 (define (print-pal x y)
   "Print some palindromes."
   (display (append x (reverse x)))
@@ -113,25 +120,29 @@ of a list read from the terminal."
   (newline)
   (display (append (append x y) (reverse (append x y))))
   (newline))
-(print-pal '(a b c) '(1 2 3)) ==> works as expected
+
+;; (print-pal '(a b c) '(1 2 3)) ==> works as expected
 
 
 ;; 5.4 Define a function read-check that takes a list
 ;;     as an argument and reads an atom from the
 ;;     terminal. Return #t if the atom is in the
 ;;     list.
+
 (define (read-check x)
   "Is an atom in list X?"
   (display "Enter an atom: ")
   (cond ((member (read) x) #t)
         (else #f)))
-(read-check '(a b c d)) ==> returns #t if you enter b
+
+;; (read-check '(a b c d)) ==> returns #t if you enter b
 
 
 ;; 5.5 Define a function print-nums taking no arguments
 ;;     that prompts for and reads two numbers. Print the
 ;;     numbers in reverse order and then their sums, and
 ;;     the functin should return that sum.
+
 (define (print-nums)
   "I/O exercises."
   (display "Enter two numbers: ")
@@ -142,9 +153,18 @@ of a list read from the terminal."
   (define sum (+ x y))
   (display sum)(newline)
   sum)
-(print-sums) ==> 3 7 ==> returns 7 3 10.
-;; Let wasn't neededd, and actually feels redundant,
-;; but done using let:
+
+;; (print-sums) ==> 3 7 ==> returns 7 3 10.
+
+;; Let wasn't needed, and actually feels redundant,
+;; but the above version would likely be considered
+;; bad by more experienced Lispers/Schemers. As with
+;; let variables, their scope is local, but it's more
+;; clear what's going on. If variables x and y are
+;; defined in the outer scope, they are properly
+;; shadowed whether in the define above or let
+;; below.
+
 (define (print-nums)
   "I/O exercises 2, using let."
   (display "Enter two numbers: ")
@@ -156,6 +176,7 @@ of a list read from the terminal."
     (display x)(newline)
     (display sum)(newline)
     sum))
+
 ;; And various tweaks to that variation work as
 ;; expected. The two interesting things to note:
 ;; * (define var exp) and (set! var exp) both
@@ -181,6 +202,7 @@ of a list read from the terminal."
 ;;     * read and store the input
 ;;     * display a list containing the function argument
 ;;       and the second input.
+
 (define (read-print x)
   "Another I/O exercise with variables."
   (let ((y nil))
@@ -189,45 +211,37 @@ of a list read from the terminal."
     (display "Enter something else: ")(newline)
     (set! y (read))
     (list x y)))
-(read-print 'a) ==> 1 ==> 2 ==> (a 2)
-;; but this is not well behaved. symbols need quoting and
-;; multi-character symbols break to the debugger
-;; while numbers are ok. lists seem ok most of the time.
-;; I'm not too concerned, these are toy problems for
-;; illustration, not real world input.
+
+;; (read-print 'a) ==> 1 ==> 2 ==> (a 2)
 
 
 ;; 5.7 Define a function longer-list that takes as arguments
 ;;     two lists. Return either the longer of the two lists
 ;;     or the symbol equal if they are the same length.
+
 (define (longer-list x y)
   "Which of X or Y is longer."
   (let ((len-x (length x))
         (len-y (length y)))
-    (cond
-     ((> len-x len-y) x)
-     ((< len-x len-y) y)
-     (else 'equal))))
-(longer-list '(1 2 3) '(4 5 6)) ==> equal
-(longer-list '(1 2) '(3 4 5 6)) ==> (3 4 5 6)
-(longer-list '(1 2 3 4) '(5 6)) ==> (1 2 3 4)
+    (cond ((> len-x len-y) x)
+          ((< len-x len-y) y)
+          (else 'equal))))
+
+;; (longer-list '(1 2 3) '(4 5 6)) ==> equal
+;; (longer-list '(1 2) '(3 4 5 6)) ==> (3 4 5 6)
+;; (longer-list '(1 2 3 4) '(5 6)) ==> (1 2 3 4)
 
 
 ;; 5.8 Define function return-list taking no arguments. It
 ;;     reads from the user and if the data read is a list,
 ;;     return it. If the data read is an atom, return a
 ;;     list holding that atom.
+
 (define (return-list)
   "Give me a list or I shall make it one!"
   (let ((x (read)))
-    (cond
-     ((list? x) x)
-     (else (list x)))))
-;; This has the same issues as I've noted earlier about
-;; fragile input handling. I also learned that quoting a
-;; value, as in 'a actually creates what appears to be a
-;; list when read: (quote a). To enter a symbol as an atom,
-;; the symbol name must be already defined.
+    (cond ((list? x) x)
+          (else (list x)))))
 
 
 ;; The text now mentions lexical binding, but not by name.
@@ -251,34 +265,47 @@ of a list read from the terminal."
 ;;     Otherwise, compute the length of the missing side,
 ;;     print the three sides, print the perimiter, and
 ;;     return nil.
-(define right-triangle
-  (lambda (h s)
-    "Given the hypotenuse and one side of a right triangle,
+
+(define (right-triangle h s)
+  "Given the hypotenuse and one side of a right triangle,
 compute its missing side and perimiter."
-    (cond ((<= h s) 'impossible)
-          (else
-           (let ((m 0) (p 0) (space (lambda () (display " "))))
-             (set! m (sqrt (- (* h h) (* s s))))
-             (set! p (+ h s m))
-             (display "(")
-             (display h)(space)
-             (display s)(space)
-             (display m)
-             (display ")")(space)
-             (display p)(newline)
-             'possible)))))
-(right-triangle 13 5) ==> (13 5 12) 30 'possible
+  (cond ((<= h s) 'impossible)
+        (else
+         (let ((m 0) (p 0))
+           (set! m (sqrt (- (* h h) (* s s))))
+           (set! p (+ h s m))
+           (display "(")
+           (display h)(display " ")
+           (display s)(display " ")
+           (display m)
+           (display ")")(display " ")
+           (display p)(newline)
+           ))))
+
+;; (right-triangle 13 5) ==> (13 5 12) 30
+;; (right-triangle 8 9)  ==> impossible
+
 ;; nil is problematic, using my synonym as the end value of
 ;; the else pushes us one level deeper into the repl
 ;; listener loop. Booleans #t and #f both print () for
-;; some reason. I'm pretty sure undefined would be
-;; acceptable here but 'possible works too.
+;; some reason.
+;;
+;; If you have a function that returns nothing at all,
+;; #<unspecified>, then in the repl session you see
+;; nothing at all. I think this is what the authors
+;; want when they return nil.
+;;
+;; In right-triangle I'm counting on the newline function
+;; to get the effect I want, but I've also tested with
+;; defining a symbol and giving it no value, and that works
+;; as well: (define nothing).
 
 
 ;; 5.10 Define a function mean3 taking no arguments. It
 ;;      should prompt the user to enter 3 numbers, use only
 ;;      on variable for input, sum the numbers, and print
 ;;      the sum and the mean. Return the mean.
+
 (define (mean3)
   "Accept three numbers, sum and mean them."
   (let ((sum 0) (mean 0))
@@ -288,7 +315,8 @@ compute its missing side and perimiter."
     (display sum)(newline)
     (display mean)(newline)
     mean))
-(mean3) ==> 3 6 9 ==> 18 6 ==> 6
+
+;; (mean3) ==> 3 6 9 ==> 18 6 ==> 6
 
 
 ;; The text now describes terminal output capabilities that
@@ -307,6 +335,13 @@ compute its missing side and perimiter."
 ;; 5.11 Define a function greet that asks for a name and
 ;;      then asks the person named what their favorite
 ;;      color is.
+
+(define (readline s)
+  "A poor man's readline to allow the whole buffer to be evaluated
+in emacs geiser. Comment out this definition if you are really going
+to test the greet function that follows with the full readline."
+  (display s)(read))
+
 (define (greet)
   "A simple prompt exercise."
   (let ((name "") (color "") (prompt ""))
@@ -315,7 +350,8 @@ compute its missing side and perimiter."
     (set! color (readline prompt))
     (display "Ha! That's funny, ")(display color)(display " is my favorite too!")
     (newline)))
-(greet) ==> works as expected in terminal repl.
+
+;; (greet) ==> works as expected in terminal repl.
 
 
 ;; 5.12 Define a function tic-out taking a single list
@@ -334,6 +370,7 @@ compute its missing side and perimiter."
 ;; let, so I decided to put the helpers inside the main
 ;; function definitions using let*, the conceptual jump
 ;; is minimal.
+
 (define (tic-out b)
   "Display a tic-tac-toe board."
   (let*
@@ -357,9 +394,10 @@ compute its missing side and perimiter."
     (disp-nl (row-to-chars (car b)))
     (disp-nl (row-to-chars (cadr b)))
     (disp-nl (row-to-chars (caddr b)))))
-(tic-out  '((x o x)(x x o)(o x #f))) ==> X O X
-                                         X X O
-                                         O X _
+
+;; (tic-out  '((x o x)(x x o)(o x #f))) ==> X O X
+;;                                          X X O
+;;                                          O X _
 
 
 ;; 5.13 Optional: Write a tic-tac-toe game.  The user moves
