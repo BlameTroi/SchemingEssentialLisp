@@ -3,27 +3,6 @@
 
 ;; These are in Guile Scheme not Common Lisp.
 
-;; helpers for functions that aren't in guile
-(define (last alist)
-  "Naive implementation of CL's LAST to get a list containing the
-final item (final cdr if you will) of ALIST."
-  (list (car (reverse alist))))
-
-(define (atom? x)
-  "In scheme, an atom is that which is not a list."
-  (not (list? x)))
-
-;; When the text asks for nil, sometimes #f makes sense, and
-;; sometimes '() does. I'll tend to use naked #f in most code
-;; but keep this around for additional clarity.
-(define nil '())
-
-;; A synonym, I learned to use mod in other languages.  Yes,
-;; modulo is not remainder, but the misuse is baked into
-;; things. If you care about the difference, you almost
-;; certainly know to use modulo and remainder when appropriate.
-(define (mod x y) (remainder x y))
-
 
 ;;;
 ;;; The Problems:
@@ -60,12 +39,10 @@ final item (final cdr if you will) of ALIST."
 ;;     number is negative.
 ;;
 ;; The text asks for nil instead of #f. Guile and Scheme use #f
-;; where Common Lisp will use nil. As checks for nil? behave
-;; well in Guile I'm going to just let #f show up as it does.
-;; I have added a (define nil #f) or was it (define nil '())?
-;; Either has the desired effect when checked against nil? but
-;; it's clear this is best. I'm going with '() since it seems
-;; to make more sense to me.
+;; where Common Lisp will use nil. Scheme doesn't have a real
+;; nil but '() can be used and seems to behave well in my
+;; (limited) experience. I'll use whichever makes sense to me
+;; for each problem. For this one, #f.
 
 (define (numline x)
   (list (= 0 x) (< x 0)))
@@ -80,10 +57,10 @@ final item (final cdr if you will) of ALIST."
 ;;     argument is an atom, return the atom. If the argument
 ;;     is an empty list, return the empty list.
 
-(define (carlis alist)
-  (cond ((equal? alist '()) '())
-        ((list? alist) (car alist))
-        (else alist)))
+(define (carlis maybe-list)
+  (cond ((equal? maybe-list '()) '())
+        ((list? maybe-list) (car maybe-list))
+        (else maybe-list)))
 
 ;; (carlis '(a b c))  ==> a
 ;; (carlis '())       ==> ()
@@ -209,10 +186,10 @@ final item (final cdr if you will) of ALIST."
 
 (define (classify-sentence sent)
   (cond ((equal? (car sent) 'why) 'question)
-   ((equal? (car sent) 'how) 'question)
-   ((member 'was sent) 'passive)
-   ((member 'by sent) 'passive)
-   (else 'active)))
+        ((equal? (car sent) 'how) 'question)
+        ((member 'was sent) 'passive)
+        ((member 'by sent) 'passive)
+        (else 'active)))
 
 ;; (classify-sentence '(mary threw the snowball at steve)) ==> active
 ;; (classify-sentence '(why did mary throw the snowball))  ==> question
@@ -224,9 +201,9 @@ final item (final cdr if you will) of ALIST."
 
 (define (classify-sentence-2 sent)
   (cond ((member (car sent) question-words) 'question)
-   ((member 'was sent) 'passive)
-   ((member 'by sent) 'passive)
-   (else 'active)))
+        ((member 'was sent) 'passive)
+        ((member 'by sent) 'passive)
+        (else 'active)))
 
 ;; which returns the same results as the original version.
 
@@ -407,8 +384,11 @@ final item (final cdr if you will) of ALIST."
 ;;      * For purposes of this exercise, I'm
 ;;        treating #f as nil.
 ;;
-;; Remember atom? is not a Scheme predicate by default,
-;; see definition at head of file or in scheming.scm.
+;; Remember atom? is not a Scheme predicate by default.
+
+(define (atom? x)
+  "helper"
+  (not (list? x)))
 
 (define (combine x y)
   (cond ((and (number? x) (number? y)) (+ x y))

@@ -5,7 +5,7 @@
 ;; needs that aren't in Guile or Scheme.
 
 
-;; I tend to paste this into working files (ch99-probs.scm)
+;; I tend to paste as needed from this file into sessions
 ;; rather than setting up a module or supporting requires.
 
 
@@ -35,7 +35,9 @@ final item (final cdr if you will) of ALIST."
 ;; but keep this around for additional clarity.
 ;;
 ;; Interestingly, Scheme does have nil? and it works with #f
-;; as one would expect.
+;; as one would expect.  It turns out that nil? is a nod to
+;; elisp. To check for what the text regards as nil, use the
+;; null? predicate.
 (define nil '())
 
 
@@ -53,10 +55,9 @@ final item (final cdr if you will) of ALIST."
 (define (empty-or-atom? x)
   "Test if empty list or an atom, list? is not sufficient for
 some tests."
-  (cond
-   ((not (list? x)) #t)
-   ((nil? x)        #t)
-   (else            #f)))
+  (cond ((not (list? x)) #t)
+        ((nil? x)        #t)
+        (else            #f)))
 
 
 ;; To make up for the missing alphalesserp from the text:

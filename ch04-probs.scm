@@ -4,51 +4,6 @@
 ;; These are in Guile Scheme not Common Lisp.
 
 
-;; Helpers for functions that aren't in Guile, or that I have
-;; a preferred name for.
-
-;; Scheme doesn't have last.
-(define (last alist)
-  "Naive implementation of CL's LAST to get a list containing the
-final item (final cdr if you will) of ALIST."
-  (cond ((empty-or-atom? alist) '())
-        (else (list (car (reverse alist))))))
-
-;; Last as an individual element.
-(define (last-item x)
-  "Return the last element of list X."
-  (car (reverse x)))
-
-;; Scheme defines list? but not atom?.
-(define (atom? x)
-  "In scheme, an atom is that which is not a list."
-  (not (list? x)))
-
-
-;; When the text asks for nil, sometimes #f makes sense, and
-;; sometimes '() does. I'll tend to use naked #f in most code
-;; but keep this around for additional clarity.
-(define nil '())
-
-
-;; A synonym, I learned to use mod in other languages.  Yes,
-;; modulo is not remainder, but the misuse is baked into
-;; things. If you care about the difference, you almost
-;; certainly know to use modulo and remainder when appropriate.
-(define (mod x y) (remainder x y))
-
-
-;; In chapter 4, this test started repeating itself so
-;; it made sense to factor it out. Helper functions are a
-;; focus of the chapter.
-(define (empty-or-atom? x)
-  "Test if empty list or an atom, list? is not sufficient for
-some tests."
-  (cond ((not (list? x)) #t)
-        ((nil? x) #t)
-        (else #f)))
-
-
 ;;;
 ;;; The Problems:
 ;;;
@@ -59,14 +14,15 @@ some tests."
 ;;     nil immediately. A one item list is not mentioned in the
 ;;     problem statement but should work ok. Define a helper function
 ;;     to last-item to return the last item in the list.
-;;
-;;     * last already exists in CL, and I've provided a version
-;;       in my standard defines, but that returns a list and not
-;;       a single item.
+
+(define (last-item x)
+  "Return the last item from list X."
+  (car (reverse x)))
 
 (define (eqends x)
   "Are the first and last elements of list X equal?"
-  (cond ((empty-or-atom? x) #f)
+  (cond ((not (list? x)) #f)
+        ((equal? x '()) #f)
         (else (equal? (car x) (last-item x)))))
 
 ;; (eqends '(a b b a)) ==> #t
@@ -83,17 +39,17 @@ some tests."
 (define (trim-l x)
   "Return a list of X with its first element removed. This is
 cdr but with some guards."
-  (cond ((empty-or-atom? x) '())
+  (cond ((or (not (list? x)) (equal? x '())) '())
         (else               (cdr x))))
 
 (define (trim-r x)
   "Return a list of X with its last element removed."
-  (cond ((empty-or-atom? x) '())
+  (cond ((or (not (list? x)) (equal? x '())) '())
         (else               (reverse (cdr (reverse x))))))
 
 (define (trim x)
   "Return a list of X with its first and last elements removed."
-  (cond ((empty-or-atom? x) '())
+  (cond ((or (not (list? x)) (equal? x '())) '())
         (else               (trim-r (trim-l x)))))
 
 ;; (trim '(a b c d)) ==> (b c)
@@ -112,12 +68,14 @@ cdr but with some guards."
 (define (switch x y)
   "Replace the last element of list X with the last element
 of list Y."
-  (append (trim-r x) (last y)))
+  (if (equal? y '())
+      (trim-r x) ;; trim-r properly deals with '()
+      (append (trim-r x) (list (car (reverse y))))))
 
 ;; (switch '(a b c d) '(cat dog)) ==> (a b c dog)
 ;; (switch '(a) '(b))             ==> (b)
 ;; (switch '() '(b))              ==> (b)
-;; (switch '(a) '())              ==> () ;; threw exception, so I fixed last
+;; (switch '(a) '())              ==> ()
 
 
 ;; 4.4 Define endsp which takes two arguments, an item and a
@@ -128,10 +86,9 @@ of list Y."
 
 (define (endsp x y)
   "Does item X equal the first or last element of list Y?"
-  (cond ((empty-or-atom? y) #f)
-        ((nil? x)           #f)
-        ((equal? x (car y)) #t)
-        (else               (equal? x (last-item y)))))
+  (cond ((or (not (list? y)) (equal? y '())) #f)
+        ((equal? x (car y))  #t)
+        (else                (equal? x (last-item y)))))
 
 ;; (endsp 'a '(a b b a)) ==> #t
 ;; (endsp 'a '(a b c d)) ==> #t
@@ -172,7 +129,7 @@ the origin, return its radius."
 
 (define (evendiv x y)
   "Is one of X or Y evenly divisible by the other?"
-  (= 0 (mod (max x y) (min x y))))
+  (= 0 (remainder (max x y) (min x y))))
 
 ;; (evendiv 4 2) ==> #t
 ;; (evendiv 2 4) ==> #t
@@ -263,7 +220,7 @@ side."
 
 (define (order s)
   "Order sentence should be used in."
-  (car (last s)))
+  (car (reverse s)))
 
 ;; (order '((some sentence) 4)) ==> 4
 
@@ -436,7 +393,7 @@ winner? Return the winner or nil."
 
 (define (add-one-pair pair)
   (cond ((and (number? (car pair)) (number? (cadr pair))) (+ (car pair) (cadr pair)))
-        (else nil)))
+        (else '())))
 
 ;; retesting:
 ;; (add-pairs '((4 5) (6 (a)) (1 2))) ==> expected 12, got wrong type to +, ()
@@ -478,7 +435,7 @@ winner? Return the winner or nil."
 (define (hour class) (caddr class))
 (define (first-class sch) (cdar sch))
 (define (second-class sch) (caadr sch))
-(define (third-class sch) (last sch))
+(define (third-class sch) (caaadr sch))
 
 (define (check-class schedule day time)
   (or (and (member day (days (first-class schedule)))

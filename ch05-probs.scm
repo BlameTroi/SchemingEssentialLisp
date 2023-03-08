@@ -6,58 +6,10 @@
 ;; These are in Guile Scheme not Common Lisp.
 
 
-;; Helpers for functions that aren't in Guile, or that I have
-;; a preferred name for.
-
-
-;; Scheme doesn't have last.
-(define (last alist)
-  "Naive implementation of CL's LAST to get a list containing the
-final item (final cdr if you will) of ALIST."
-  (cond
-   ((empty-or-atom? alist) '())
-   (else (list (car (reverse alist))))))
-
-
-;; Last as an individual element.
-(define (last-item x)
-  "Return the last element of list X."
-  (car (reverse x)))
-
-
-;; Scheme defines list? but not atom?.
-(define (atom? x)
-  "In scheme, an atom is that which is not a list."
-  (not (list? x)))
-
-
-;; When the text asks for nil, sometimes #f makes sense, and
-;; sometimes '() does. I'll tend to use naked #f in most code
-;; but keep this around for additional clarity.
-(define nil '())
-
-
-;; A synonym, I learned to use mod in other languages.  Yes,
-;; modulo is not remainder, but the misuse is baked into
-;; things. If you care about the difference, you almost
-;; certainly know to use modulo and remainder when appropriate.
-(define (mod x y) (remainder x y))
-
-
-;; In chapter 4, this test started repeating itself so
-;; it made sense to factor it out. Helper functions are a
-;; focus of the chapter.
-(define (empty-or-atom? x)
-  "Test if empty list or an atom, list? is not sufficient for
-some tests."
-  (cond
-   ((not (list? x)) #t)
-   ((nil? x) #t)
-   (else #f)))
-
 ;;;
 ;;; General notes:
 ;;;
+
 
 ;; In chapter 5, we start on basic input output. implementation
 ;; differences are going to mess up some of the examples.
@@ -77,6 +29,16 @@ some tests."
 ;; is to do the actual testing in the Guile repl outside of
 ;; Emacs. Be sure to enable readline. See README.org in this
 ;; repository for how to enable readline by default.
+;;
+;; The following definition of readline will shadow (replace)
+;; readline if you've enabled it. I put it here to allow this
+;; file to compile cleanly.
+
+(define (readline s)
+  "A poor man's readline to allow the whole buffer to be evaluated
+in emacs geiser. Comment out this definition if you are really going
+to test the greet function that follows with the full readline."
+  (display s)(read))
 
 
 ;;;
@@ -205,7 +167,7 @@ of a list read from the terminal."
 
 (define (read-print x)
   "Another I/O exercise with variables."
-  (let ((y nil))
+  (let ((y '()))
     (display "Enter something: ")(newline)
     (display (read))(newline)
     (display "Enter something else: ")(newline)
@@ -335,12 +297,6 @@ compute its missing side and perimiter."
 ;; 5.11 Define a function greet that asks for a name and
 ;;      then asks the person named what their favorite
 ;;      color is.
-
-(define (readline s)
-  "A poor man's readline to allow the whole buffer to be evaluated
-in emacs geiser. Comment out this definition if you are really going
-to test the greet function that follows with the full readline."
-  (display s)(read))
 
 (define (greet)
   "A simple prompt exercise."

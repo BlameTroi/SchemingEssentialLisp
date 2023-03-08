@@ -1,29 +1,7 @@
 ;; being exercises and code snippets from chapter 2 of
 ;; Essential Lisp.
 
-;; these are done in Guile Scheme not Common Lisp
-
-
-;; helpers for functions that aren't in guile
-(define (last alist)
-  "Naive implementation of CL's LAST to get a list containing the
-final item (final cdr if you will) of ALIST."
-  (list (car (reverse alist))))
-
-(define (atom? x)
-  "In scheme, an atom is that which is not a list."
-  (not (list? x)))
-
-;; When the text asks for nil, sometimes #f makes sense, and
-;; sometimes '() does. I'll tend to use naked #f in most code
-;; but keep this around for additional clarity.
-(define nil '())
-
-;; A synonym, I learned to use mod in other languages.  Yes,
-;; modulo is not remainder, but the misuse is baked into
-;; things. If you care about the difference, you almost
-;; certainly know to use modulo and remainder when appropriate.
-(define (mod x y) (remainder x y))
+;; These are done in Guile Scheme not Common Lisp
 
 
 ;; 2.1 Questions off of the function 'insert-second' and
@@ -34,7 +12,7 @@ final item (final cdr if you will) of ALIST."
 (define (insert-second item old-list)
   (cons (car old-list) (cons item (cdr old-list))))
 
-;; (insert-second 'b '(a c d)) ==> '(a b c d)
+;; (insert-second 'b '(a c d)) ==> (a b c d)
 
 ;; i. What are the parameters in the definition above?
 ;; item & old-list
@@ -96,10 +74,10 @@ final item (final cdr if you will) of ALIST."
 (define (ftoc f)
   (/ (- f 32) 1.8))
 
-;; (ftoc 32)  ==> 0
-;; (ftoc 212) ==> 100
-;; (ftoc 140) ==> 60
-;; (ftoc 68)  ==> 20
+;; (ftoc 32)  ==> 0.0
+;; (ftoc 212) ==> 100.0
+;; (ftoc 140) ==> 60.0
+;; (ftoc 68)  ==> 20.0
 
 
 ;; 2.6 Define a function sqr that returns a list of
@@ -119,7 +97,9 @@ final item (final cdr if you will) of ALIST."
 ;; one or more lists as arguments and return a list.
 ;;
 ;; last and other helpers for missing functions will be
-;; included in each of these work files.
+;; included in a file called scheming.scm. That file can be
+;; copied in its entirety or specific functions can be pulled
+;; out as needed.
 
 
 ;; 2.7 Define a function list-one which takes an atom and
@@ -128,9 +108,9 @@ final item (final cdr if you will) of ALIST."
 (define (list-one atom)
   (list atom))
 
-;; (list-one 'a)     ==> '(a)
-;; (list-one '(a b)) ==> '((a b))
-;; (list-one '(a))   ==> '((a))
+;; (list-one 'a)     ==> (a)
+;; (list-one '(a b)) ==> ((a b))
+;; (list-one '(a))   ==> ((a))
 
 
 ;; 2.8 Define a function back which returns two copies of
@@ -141,18 +121,22 @@ final item (final cdr if you will) of ALIST."
 (define (back alist)
   (append (reverse alist) (reverse alist)))
 
-;; (back '(a b)) ==> '(b a b a)
-;; (back '())    ==> '()
-;; (back '(z))   ==> '(z z)
+;; (back '(a b)) ==> (b a b a)
+;; (back '())    ==> ()
+;; (back '(z))   ==> (z z)
 
 
 ;; 2.9 Define a function ends which returns the first and
 ;;     last items in a given list.
 
+(define (last alist)
+  "helper"
+  (list (car (reverse alist))))
+
 (define (ends alist)
   (append (list (car alist)) (last alist)))
 
-;; (ends '(a b c d)) ==> '(a d)
+;; (ends '(a b c d)) ==> (a d)
 
 
 ;; 2.10 Define a function pal that takes a list and returns
@@ -161,7 +145,7 @@ final item (final cdr if you will) of ALIST."
 (define (pal alist)
   (append alist (reverse alist)))
 
-;; (pal '(a b c)) ==> '(a b c c b a)
+;; (pal '(a b c)) ==> (a b c c b a)
 
 
 ;; 2.11 Define a function snoc that is the reverse of cons.
@@ -171,13 +155,17 @@ final item (final cdr if you will) of ALIST."
 (define (snoc item alist)
   (append alist (list item)))
 
-;; (snoc 'd '(a b c)) ==> '(a b c d)
+;; (snoc 'd '(a b c)) ==> (a b c d)
 
 
 ;; 2.12 Define a function rotater that rotates a list one
 ;;      item to the right. So '(a b c d) becomes '(d a b c).
 
+(define (last alist)
+  "helper"
+  (list (car (reverse alist))))
+
 (define (rotater alist)
   (append (last alist) (reverse (cdr (reverse alist)))))
 
-;; (rotater '(a b c d)) ==> '(d a b c)
+;; (rotater '(a b c d)) ==> (d a b c)
