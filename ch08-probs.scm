@@ -3,80 +3,22 @@
 
 ;; List Iteration.
 
-;; these are in Guile/Gcheme not Common Lisp.
-
-
-;; Support code for working through Essential Lisp.
-
-
-;; Being helpers and functions that the book mentions or
-;; needs that aren't in Guile or Scheme.
-
-
-;; I tend to paste this into working files (ch99-probs.scm)
-;; rather than setting up a module or supporting requires.
-
-
-;; Scheme doesn't have last, at least by that name.
-(define (last alist)
-  "Naive implementation of CL's LAST to get a list containing the
-final item (final cdr if you will) of ALIST."
-  (cond
-   ((empty-or-atom? alist) '())
-   (else (list (car (reverse alist))))))
-
-
-;; Last as an individual element.
-(define (last-item x)
-  "Return the last element of list X."
-  (car (reverse x)))
-
-
-;; Scheme defines list? but not atom?.
-(define (atom? x)
-  "In scheme, an atom is that which is not a list."
-  (not (list? x)))
-
-
-;; When the text asks for nil, sometimes #f makes sense, and
-;; sometimes '() does. I'll tend to use naked #f in most code
-;; but keep this around for additional clarity.
-;;
-;; Interestingly, Scheme does have nil? and it works with #f
-;; as one would expect.
-(define nil '())
-
-
-;; A synonym, I learned to use mod in other languages.  Yes,
-;; modulo is not remainder, but the misuse is baked into
-;; things. If you care about the difference, you almost
-;; certainly know to use modulo and remainder when appropriate.
-(define (mod x y)
-  (remainder x y))
-
-
-;; In chapter 4, this test started repeating itself so
-;; it made sense to factor it out. Helper functions are a
-;; focus of the chapter.
-(define (empty-or-atom? x)
-  "Test if empty list or an atom, list? is not sufficient for
-some tests."
-  (cond
-   ((not (list? x)) #t)
-   ((nil? x)        #t)
-   (else            #f)))
+;; These are in Guile Scheme not Common Lisp.
 
 
 ;;;
 ;;; And now the problems.
 ;;;
 ;;; The text is using explicit looping forms and not recursion
-;;; at the start of the chapter.
+;;; at the start of the chapter.  Since the loop/return forms
+;;; from Common Lisp aren't in Scheme, I'm using while most of
+;;; the time.
 ;;;
 
 
 ;; 8.1 Define list-sum, taking a list and returning the sum of
 ;;     the items in the list.
+
 (define (list-sum xs)
   "Return the sum of the items in list XS."
   (let ((sum 0))
@@ -84,13 +26,15 @@ some tests."
       (set! sum (+ sum (car xs)))
       (set! xs (cdr xs)))
     sum))
-(list-sum '(1 2 3)) ==> 6
-(list-sum '(5 10 -4 27)) ==> 38
-(list-sum '()) ==> 0
+
+;; (list-sum '(1 2 3)) ==> 6
+;; (list-sum '(5 10 -4 27)) ==> 38
+;; (list-sum '()) ==> 0
 
 
 ;; 8.2 Define list-car, taking a list and returning the first items
 ;;     of any embedded lists.
+
 (define (list-car xs)
   "Return the first item of any sublists in XS."
   (let ((cars '()))
@@ -99,22 +43,24 @@ some tests."
           (set! cars (append cars (list (car (car xs))))))
       (set! xs (cdr xs)))
     cars))
-(list-car '( (a b) (b c) (d e) f g (h i))) ==> (a b d h)
-(list-car '((a b c) (train) (45 96)))      ==> (a train 45)
+
+;; (list-car '((a b) (b c) (d e) f g (h i))) ==> (a b d h)
+;; (list-car '((a b c) (train) (45 96)))     ==> (a train 45)
 
 ;; Variable scoping note: the copy of the list passed into either
 ;; function is local to the function. The set! does not change the
 ;; original list. So after:
-(define lis '((a b) (c d) (e f g) (h i)))
-(list-car lis) ==> (a c e h)
+;; (define lis '((a b) (c d) (e f g) (h i)))
+;; (list-car lis) ==> (a c e h)
 ;; lis is unchanged by list-car.
-lis ==> ((a b) (c d) (e f g) (h i))
+;; lis      ==> ((a b) (c d) (e f g) (h i))
 
 
 ;; 8.3 Define your own version of member taking two areguments as
 ;;     member does: an item and a list to search. Return nil if
 ;;     the item is not in the list, or tail of the list from item
 ;;     onward.
+
 (define (my-member x xs)
   (let ((res '()))
     (while (and (null? res) (not (null? xs)))
@@ -122,8 +68,9 @@ lis ==> ((a b) (c d) (e f g) (h i))
           (set! res xs)
           (set! xs (cdr xs))))
     res))
-(my-member 1 '(3 2 1 0)) ==> (1 0)
-(my-member 'asdf '())    ==> ()
+
+;; (my-member 1 '(3 2 1 0)) ==> (1 0)
+;; (my-member 'asdf '())    ==> ()
 
 
 ;; 8.4 Define a function make-sublists that takes a single list and
@@ -131,6 +78,7 @@ lis ==> ((a b) (c d) (e f g) (h i))
 ;;     the elements from the original that are numbers, and the
 ;;     second holds all the elements that are not numbers. Preserve
 ;;     the original ordering of the elements.
+
 (define (make-sublists xs)
   (let ((nums '()) (nots '()))
     (while (not (null? xs))
@@ -139,14 +87,16 @@ lis ==> ((a b) (c d) (e f g) (h i))
           (set! nots (append nots (list (car xs)))))
       (set! xs (cdr xs)))
     (list nums nots)))
-(make-sublists '(1 2 fred 3 wilma 8 (a b) (1 2))) ==>
-  ((1 2 3 8) (fred wilma (a b) (1 2)))
+
+;; (make-sublists '(1 2 fred 3 wilma 8 (a b) (1 2))) ==>
+;;   ((1 2 3 8) (fred wilma (a b) (1 2)))
 
 
 ;; 8.5 Define remove-first that takes two arguments: a target item
 ;;     and a list. Return a new version of the list with the first
 ;;     occurrence of the target item removed. If the target item is
 ;;     not found, return a copy of the original list.
+
 (define (remove-first x xs)
   (let ((res '()))
     (while (not (null? xs))
@@ -158,16 +108,19 @@ lis ==> ((a b) (c d) (e f g) (h i))
             (set! res (append res (list (car xs))))
             (set! xs (cdr xs)))))
     res))
-(remove-first 1 '(1 2 3 4)) ==> (2 3 4)
-(remove-first 2 '(1 2 3 4)) ==> (1 3 4)
-(remove-first 4 '(1 2 3 4)) ==> (1 2 3)
-(remove-first 5 '(1 2 3 4)) ==> (1 2 3 4)
-(remove-first '() '(1 2 3)) ==> (1 2 3)
-(remove-first 0 '())        ==> ()
+
+;; (remove-first 1 '(1 2 3 4)) ==> (2 3 4)
+;; (remove-first 1 '(4 1 3 1)) ==> (4 3 1)
+;; (remove-first 2 '(1 2 3 4)) ==> (1 3 4)
+;; (remove-first 4 '(1 2 3 4)) ==> (1 2 3)
+;; (remove-first 5 '(1 2 3 4)) ==> (1 2 3 4)
+;; (remove-first '() '(1 2 3)) ==> (1 2 3)
+;; (remove-first 0 '())        ==> ()
 
 
 ;; 8.6 Write save-negs to extract all the negative numbers from a
 ;;     list in the order they occurred in the list.
+
 (define (save-negs xs)
   (let ((res '()))
     (while (not (null? xs))
@@ -175,7 +128,8 @@ lis ==> ((a b) (c d) (e f g) (h i))
           (set! res (append res (list (car xs)))))
       (set! xs (cdr xs)))
     res))
-(save-negs '(10 -3 7 -18 -2 2 4 -8)) ==> (-3 -18 -2 -8)
+
+;; (save-negs '(10 -3 7 -18 -2 2 4 -8)) ==> (-3 -18 -2 -8)
 
 
 ;;;
@@ -189,9 +143,11 @@ lis ==> ((a b) (c d) (e f g) (h i))
 ;; function for comparing symbol names as strings. I've come up
 ;; with the symbol< function and will use it and the parallel
 ;; functions = and >.
+
 (define (symbol< x y) (string< (symbol->string x) (symbol->string y)))
 (define (symbol= x y) (string= (symbol->string x) (symbol->string y)))
 (define (symbol> x y) (string> (symbol->string x) (symbol->string y)))
+
 ;;
 ;; The function from 8.5 remove-first can be used when pulling items
 ;; from a list. If performance was a big issue, I could rewrite
@@ -210,6 +166,7 @@ lis ==> ((a b) (c d) (e f g) (h i))
 ;;
 ;; In an insertion sort, take items from the head of the source list
 ;; and place them in the correct position in the destination list.
+
 (define (insertion-sort xs)
   "Sort numeric list XS into ascending order using an insertion sort."
   (let ((res '()) (cur 0))
@@ -218,6 +175,7 @@ lis ==> ((a b) (c d) (e f g) (h i))
       (set! xs  (cdr xs))
       (set! res (insert-into-sorted-list cur res)))
     res))
+
 (define (insert-into-sorted-list x xs)
   "Insert numeric X into numeric list XS in its proper location. If
 a duplicate item is encountered, it will be added adjacent to the
@@ -240,9 +198,8 @@ existing item."
               (set! res (append res (list x)))
               (set! xs (cdr xs)))))))
     res))
-;; I must be getting better at Scheme, these loops offend when I know
-;; recursive soluitons will be shorter and more comprehensible.
-(insertion-sort '(10 9 8 7 6 5 4 3 2 1)) ==> (1 2 3 4 5 6 7 8 9 10)
+
+;; (insertion-sort '(10 9 8 7 6 5 4 3 2 1)) ==> (1 2 3 4 5 6 7 8 9 10)
 
 
 ;; The text now directs us to use Lisp function remove, a more
@@ -255,14 +212,16 @@ existing item."
 ;;     items that appear more than once in the list. Use built in
 ;;     function remove (delete in Scheme) to remove items from the
 ;;     list control variable.
+
 (define (occurs x xs)
-  "How many times does x occur in xs. Non-recursive implementation."
+  "How many times does X occur in XS. Non-recursive implementation."
   (let ((cnt 0))
     (while (not (null? xs))
       (if (equal? x (car xs))
           (set! cnt (1+ cnt)))
       (set! xs (cdr xs)))
     cnt))
+
 (define (duplicates xs)
   "Return a list of all the items that appear more than once in XS."
   (let ((res '()))
@@ -271,9 +230,10 @@ existing item."
           (set! res (cons (car xs) res)))
       (set! xs (delete (car xs) xs)))
     res))
-(duplicates '(1 2 3 4)) ==> ()
-(duplicates '(a b a)) ==> ()
-(duplicates '(a b a b c)) ==> (b a)
+
+;; (duplicates '(1 2 3 4)) ==> ()
+;; (duplicates '(a b a)) ==> ()
+;; (duplicates '(a b a b c)) ==> (b a)
 ;; The result is in reverse order but order is not specified in the
 ;; problem. It can be reversed on the way out or the set! res can
 ;; be changed to (append (list (car xs)) res).
@@ -292,28 +252,31 @@ existing item."
 ;;
 ;; So remove items once processed from controlling list via
 ;; remove/delete and not just taking successive cdrs.
+
 (define (list-intersect xs ys)
   "Return the set of the intersection of lists XS and YS, which
 themselves might not be proper sets."
-  (cond
-   ((or (null? xs) (null? ys)) '())
-   (else
-    (let ((res '()))
-      (while (not (null? xs))
-        (if (member (car xs) ys)
-            (set! res (cons (car xs) res)))
-        (set! xs (delete (car xs) xs)))
-      res))))
+  (cond ((or (null? xs) (null? ys)) '())
+        (else
+         (let ((res '()))
+           (while (not (null? xs))
+             (if (member (car xs) ys)
+                 (set! res (cons (car xs) res)))
+             (set! xs (delete (car xs) xs)))
+           res))))
+
 ;; or recursively:
 (define (list-intersect-r xs ys)
   "Return the set of the intersection of lists XS and YS, which
 themselves might not be proper sets."
   (cond ((or (null? xs) (null? ys)) '())
         (else (inner-list-intersect-r xs ys '()))))
+
 (define (inner-list-intersect-r xs ys accum)
   (cond ((null? xs) accum)
         (else (if (member (car xs) ys)
                   (set! accum (cons (car xs) accum)))
               (inner-list-intersect-r (delete (car xs) xs) ys accum))))
-(list-intersect-r '(a b c a b b a) '(x y z a c q)) ==> (c a)
-(list-intersect-r '(a b a c b) '(a a b c d)) ==> (c b a)
+
+;; (list-intersect '(a b c a b b a) '(x y z a c q)) ==> (c a)
+;; (list-intersect-r '(a b a c b) '(a a b c d)) ==> (c b a)

@@ -3,99 +3,7 @@
 
 ;; Iteration with the do and mapcar special forms.
 
-;; these are in Guile/Gcheme not Common Lisp.
-
-
-;; Support code for working through Essential Lisp.
-
-
-;; Being helpers and functions that the book mentions or
-;; needs that aren't in Guile or Scheme.
-
-
-;; I tend to paste this into working files (ch99-probs.scm)
-;; rather than setting up a module or supporting requires.
-
-
-;; Scheme doesn't have last, at least by that name.
-(define (last alist)
-  "Naive implementation of CL's LAST to get a list containing the
-final item (final cdr if you will) of ALIST."
-  (cond
-   ((empty-or-atom? alist) '())
-   (else (list (car (reverse alist))))))
-
-
-;; Last as an individual element.
-(define (last-item x)
-  "Return the last element of list X."
-  (car (reverse x)))
-
-
-;; Scheme defines list? but not atom?.
-(define (atom? x)
-  "In scheme, an atom is that which is not a list."
-  (not (list? x)))
-
-
-;; When the text asks for nil, sometimes #f makes sense, and
-;; sometimes '() does. I'll tend to use naked #f in most code
-;; but keep this around for additional clarity.
-;;
-;; Interestingly, Scheme does have nil? and it works with #f
-;; as one would expect.
-(define nil '())
-
-
-;; A synonym, I learned to use mod in other languages.  Yes,
-;; modulo is not remainder, but the misuse is baked into
-;; things. If you care about the difference, you almost
-;; certainly know to use modulo and remainder when appropriate.
-(define (mod x y)
-  (remainder x y))
-
-
-;; In chapter 4, this test started repeating itself so
-;; it made sense to factor it out. Helper functions are a
-;; focus of the chapter.
-(define (empty-or-atom? x)
-  "Test if empty list or an atom, list? is not sufficient for
-some tests."
-  (cond
-   ((not (list? x)) #t)
-   ((nil? x)        #t)
-   (else            #f)))
-
-
-;; To make up for the missing alphalesserp from the text:
-(define (symbol< x y) (string< (symbol->string x) (symbol->string y)))
-(define (symbol= x y) (string= (symbol->string x) (symbol->string y)))
-(define (symbol> x y) (string> (symbol->string x) (symbol->string y)))
-
-
-;; Ran across a need for this elsewhere and am including it in
-;; case I need it again.
-(define (rotate xs)
-  "Rotate the items in list XS by moving (car XS) to the end of XS."
-  (cond ((or (null? xs) (null? (cdr xs))) xs)
-        (else (append (cdr xs) (list (car xs))))))
-
-
-;; For timing operations. Example (duration '(permut '(a b c))).
-;; The operation should be quoted. The time is a pair: (seconds
-;; since 1970 . microseconds).
-(define (duration x)
-  "Time the duration of sexp X using time of day.
-You need to quote X."
-  (let ((start '(0 . 0)) (stop '(0 . 0)) (capture '()))
-    (set! start (gettimeofday))
-    (set! capture (eval x (interaction-environment)))
-    (set! stop (gettimeofday))
-    (display capture)(newline)
-    (display "start at: ")(display start)(newline)
-    (display " stop at: ")(display stop)(newline)
-    ;; todo, calculate difference
-    ))
+;; these are in Guile Scheme not Common Lisp.
 
 
 ;;;
@@ -111,7 +19,7 @@ You need to quote X."
        (xout '() (cons (car xin) xout)))
       ((null? xin) xout)))
 
-(my-reverse '(a b c d))
+;; (my-reverse '(a b c d)) ==> (d c b a)
 
 
 ;; Early on I'm having problems with the variable update clauses.
@@ -131,8 +39,8 @@ in XS are numbers."
        (c 0 (1+ c)))
       ((null? xin) (/ s c))))
 
-(list-avg '(1 2 3 4 5 6)) ==> 7/2
-(list-avg '(10 20 30))    ==> 20
+;; (list-avg '(1 2 3 4 5 6)) ==> 7/2
+;; (list-avg '(10 20 30))    ==> 20
 
 
 ;; 10.3 Define a function expon that takes two arguments, a base
@@ -144,7 +52,7 @@ in XS are numbers."
   (do ((res 1 (* res b)) (c x (1- c)))
       ((zero? c) res)))
 
-(expon 3 5)
+;; (expon 3 5) ==> 243
 
 
 ;; 10.4 Rewrite create-list from exercise 6.5 using do.
@@ -155,7 +63,7 @@ in XS are numbers."
        (xout '() (cons i xout)))
       ((zero? i) xout)))
 
-(create-list 10) ==> (1 2 3 4 5 6 7 8 9 10)
+;; (create-list 10) ==> (1 2 3 4 5 6 7 8 9 10)
 
 
 ;; 10.5 Rewrite next-prime from exercise 6.7 using do. Re-use
@@ -182,8 +90,8 @@ in XS are numbers."
   (do ((prime n (1+ prime)))
       ((prime? prime) prime)))
 
-(next-prime 10) ==> 11
-(next-prime 24) ==> 29
+;; (next-prime 10) ==> 11
+;; (next-prime 24) ==> 29
 
 
 ;; 10.6 Rewrite the sumall function from chapter 7 using
@@ -195,7 +103,7 @@ in XS are numbers."
        (res 0 (+ i res)))
       ((> i n) res)))
 
-(sumall 3) ==> 6
+;; (sumall 3) ==> 6
 
 
 ;; I'm finding the do form lends itself to a couple of errors.
@@ -229,8 +137,8 @@ in XS are numbers."
                                           (else (cons (car xin) xout)))))
       ((null? xin) (reverse xout))))
 
-(save-atoms '(a b (c d) e (f g) atom (molecule) mork () mindy))
-             ==> (a b e atom mork mindy)
+;; (save-atoms '(a b (c d) e (f g) atom (molecule) mork () mindy))
+;;              ==> (a b e atom mork mindy)
 
 
 ;; 10.8 Define function sortnums that takes a list and returns a
@@ -252,7 +160,7 @@ zero, and all numbers greater than or equal to zero."
                       (else pos))))
       ((null? xin) (list (reverse neg) (reverse pos)))))
 
-(sortnums '(-1 7 -2 8 9 11 13 147 0 -357)) ==> ((-1 -2 -357) (7 8 9 11 13 147 0))
+;; (sortnums '(-1 7 -2 8 9 11 13 147 0 -357)) ==> ((-1 -2 -357) (7 8 9 11 13 147 0))
 
 
 ;; Now the text discusses the do body, statements to perform in order
@@ -282,10 +190,11 @@ zero, and all numbers greater than or equal to zero."
         ((= col c) (newline))
       (display 'X))))
 
-(rectangle 3 4) ==>
-XXXX
-XXXX
-XXXX
+;; (rectangle 3 4) ==>
+;; XXXX
+;; XXXX
+;; XXXX
+
 
 ;; 10.10 Write function printout taking a list of words (as atoms).
 ;;       Print out the words on a line but when the atom ret is
@@ -301,12 +210,19 @@ must explicitly request the ending newline."
         (newline)
         (begin (display (car xin))(display " ")))))
 
-(printout '(these are the times that try men's souls)) ==>
-as you would expect
+;; (printout '(these are the times that try men's souls)) ==>
+;; these are the times that try men's souls
+;;
+;; (printout '(inka ret dinka ret doo)) ==>
+;; inka
+;; dinka
+;; doo
 
 
-;; The text introduces mapcar, which is map in Scheme. Also in scheme
-;; the function argument to map is not quoted.
+;;;
+;;; The text introduces mapcar, which is map in Scheme. Also in scheme
+;;; the function argument to map is not quoted.
+;;;
 
 
 ;; 10.11 Define function list-decrement taking a list and returning a
@@ -316,7 +232,7 @@ as you would expect
   "Decrement numeric values in list XS by 1."
   (map 1- xs))
 
-(list-decrement '(3 7 8 11)) ==> (2 6 7 10)
+;; (list-decrement '(3 7 8 11)) ==> (2 6 7 10)
 
 
 ;; 10.12 Define function embed-lists that makes each item in a list
@@ -326,7 +242,8 @@ as you would expect
   "Listify elements of list XS"
   (map list xs))
 
-(embed-lists '(a b c (d e) (f (g)))) ==> ((a) (b) (c) ((d e)) ((f (g))))
+;; (embed-lists '(a b c (d e) (f (g)))) ==> ((a) (b) (c) ((d e)) ((f (g))))
+
 
 ;; As with mapcar, map can work with multiple lists, passing the cars
 ;; of each list together to a mapping function. Unlike mapcar, map
@@ -341,15 +258,16 @@ as you would expect
   "Pair up the items in lists XS and YS by position."
   (map list xs ys))
 
-(pair-up '(tom dick harry) '(jane betty carol)) ==> ((tom jane) (dick betty) (harry carol))
+;; (pair-up '(tom dick harry) '(jane betty carol)) ==>
+;; ((tom jane) (dick betty) (harry carol))
 
-
-;; Finally the text introduces lambda functions! They are using them
-;; without names, so the whole definition is embedded in the function
-;; argument of the map.
-;;
-;; And as with named functions, while Lisp's mapcar wants the function
-;; quoted, Scheme does not.
+;;;
+;;; Finally the text introduces lambda functions! They are using them
+;;; without names, so the whole definition is embedded in the function
+;;; argument of the map.
+;;;
+;;; And as with named functions, while Lisp's mapcar wants the function
+;;; quoted, Scheme does not.
 
 
 ;; 10.14 Define function add-to-list taking two arguments, a number
@@ -360,7 +278,7 @@ as you would expect
   "Increment each element of XS by N."
   (map (lambda (x) (+ n x)) xs))
 
-(add-to-list 3 '(1 2 3)) ==> (4 5 6)
+;; (add-to-list 3 '(1 2 3)) ==> (4 5 6)
 
 
 ;; 10.15 Determine the covariance of two lists X and Y of the same
@@ -386,4 +304,4 @@ as you would expect
 (define (covariance x y)
   (/ (- (mean (map * x y)) (* (mean x) (mean y))) (1- (length x))))
 
-(covariance '(1 2 3) '(1 2 3)) ==> -3
+;; (covariance '(1 2 3) '(1 2 3)) ==> -3

@@ -3,83 +3,12 @@
 
 ;; Advanced Recursion -- optional problem 9.12, genset.
 
-;; these are in Guile/Gcheme not Common Lisp.
-
-
-;; Support code for working through Essential Lisp.
-
-
-;; Being helpers and functions that the book mentions or
-;; needs that aren't in Guile or Scheme.
-
-
-;; I tend to paste this into working files (ch99-probs.scm)
-;; rather than setting up a module or supporting requires.
-
-
-;; Scheme doesn't have last, at least by that name.
-(define (last alist)
-  "Naive implementation of CL's LAST to get a list containing the
-final item (final cdr if you will) of ALIST."
-  (cond
-   ((empty-or-atom? alist) '())
-   (else (list (car (reverse alist))))))
-
-
-;; Last as an individual element.
-(define (last-item x)
-  "Return the last element of list X."
-  (car (reverse x)))
-
-
-;; Scheme defines list? but not atom?.
-(define (atom? x)
-  "In scheme, an atom is that which is not a list."
-  (not (list? x)))
-
-
-;; When the text asks for nil, sometimes #f makes sense, and
-;; sometimes '() does. I'll tend to use naked #f in most code
-;; but keep this around for additional clarity.
-;;
-;; Interestingly, Scheme does have nil? and it works with #f
-;; as one would expect.
-(define nil '())
-
-
-;; A synonym, I learned to use mod in other languages.  Yes,
-;; modulo is not remainder, but the misuse is baked into
-;; things. If you care about the difference, you almost
-;; certainly know to use modulo and remainder when appropriate.
-(define (mod x y)
-  (remainder x y))
-
-
-;; In chapter 4, this test started repeating itself so
-;; it made sense to factor it out. Helper functions are a
-;; focus of the chapter.
-(define (empty-or-atom? x)
-  "Test if empty list or an atom, list? is not sufficient for
-some tests."
-  (cond
-   ((not (list? x)) #t)
-   ((nil? x)        #t)
-   (else            #f)))
-
+;; These are in Guile Scheme not Common Lisp.
 
 ;; To make up for the missing alphalesserp from the text:
 ;; (define (symbol< x y) (string< (symbol->string x) (symbol->string y)))
 ;; (define (symbol= x y) (string= (symbol->string x) (symbol->string y)))
 ;; (define (symbol> x y) (string> (symbol->string x) (symbol->string y)))
-
-
-;; Ran across a need for this elsewhere and am including it in
-;; case I need it again.
-(define (rotate xs)
-  "Rotate the items in list XS by moving (car XS) to the end of XS."
-  (cond ((or (null? xs) (null? (cdr xs))) xs)
-        (else (append (cdr xs) (list (car xs))))))
-
 
 ;; For timing operations. Example (duration '(permut '(a b c))).
 ;; The operation should be quoted. The time is a pair: (seconds
@@ -96,6 +25,7 @@ You need to quote X."
     (display " stop at: ")(display stop)(newline)
     ;; todo, calculate difference
     ))
+
 
 ;;;
 ;;; And now the problem.
@@ -145,14 +75,13 @@ You need to quote X."
 ;; Comparison helper for sorting dissimilar types.
 (define (type x)
   "Return a symbol representing the type of X."
-  (cond
-   ((null? x)    't-null)
-   ((symbol? x)  't-symbol)
-   ((number? x)  't-tnumber)
-   ((boolean? x) 't-boolean)
-   ((string? x)  't-string)
-   ((list? x)    't-list)
-   (else         't-unknown)))
+  (cond ((null? x)    't-null)
+        ((symbol? x)  't-symbol)
+        ((number? x)  't-tnumber)
+        ((boolean? x) 't-boolean)
+        ((string? x)  't-string)
+        ((list? x)    't-list)
+        (else         't-unknown)))
 
 
 ;; To make up for the missing alphalesserp from the text:
@@ -167,25 +96,21 @@ You need to quote X."
 the items for ordering. Functions compare< and list< are used.
 
 Constraint: call only if the lists are the same length."
-  ;;(display ">list-items< ")(display " ")(display xs)(display " ")(display ys)(newline)
-  (cond
-   ((and (null? xs) (null? ys))  #f)
-   ((null? xs)                   #t) ;; if peopel follow the constraint
-   ((null? ys)                   #f) ;; these aren't needed, but ...
-   ((compare< (car xs) (car ys)) (list< (cdr xs) (cdr ys)))
-   (else                         #f)))
+  (cond ((and (null? xs) (null? ys))  #f)
+        ((null? xs)                   #t) ;; if peopel follow the constraint
+        ((null? ys)                   #f) ;; these aren't needed, but ...
+        ((compare< (car xs) (car ys)) (list< (cdr xs) (cdr ys)))
+        (else                         #f)))
 
 
 (define (list< xs ys)
   "Does list XS come before list YS. Ordering is null, then length,
 and then element by element."
-  ;;(display ">list< ")(display " ")(display xs)(display " ")(display ys)(newline)
-  (cond
-   ((null? xs) #t)
-   ((null? ys) #f)
-   ((< (length xs) (length ys)) #t)
-   ((< (length ys) (length xs)) #f)
-   (else           (list-items< xs ys))))
+  (cond ((null? xs) #t)
+        ((null? ys) #f)
+        ((< (length xs) (length ys)) #t)
+        ((< (length ys) (length xs)) #f)
+        (else           (list-items< xs ys))))
 
 
 ;; Less than comparison that orders by type name then contents.
@@ -193,20 +118,17 @@ and then element by element."
   "Compare two elements for ordering. If they are of the same type,
 use the appropriate form of <. If they are of different types, order
 by their name names."
-  ;;(display ">compare< ")(display x)(display " ")(display y)(newline)
-  (cond
-   ((and (boolean? x) (boolean? y)) (not x)) ;; #f before #t
-   ((and (number? x) (number? y))   (< x y))
-   ((and (symbol? x) (symbol? y))   (symbol< x y))
-   ((and (string? x) (string? y))   (string< x y))
-   ((and (list? x) (list? y))       (list< x y))
-   (else                            (symbol< (type x) (type y)))))
+  (cond ((and (boolean? x) (boolean? y)) (not x)) ;; #f before #t
+        ((and (number? x) (number? y))   (< x y))
+        ((and (symbol? x) (symbol? y))   (symbol< x y))
+        ((and (string? x) (string? y))   (string< x y))
+        ((and (list? x) (list? y))       (list< x y))
+        (else                            (symbol< (type x) (type y)))))
 
 
 (define (add-to-sorted-list x xs)
   "Add item X to XS in proper order. See compare< and compare= for
 the definition of that order."
-  ;;(display ">add-to-sorted-list ")(display x)(display " ")(display xs)(newline)
   (cond ((null? xs)             (list x))
         ((compare< x (car xs))  (cons x xs))
         (else                   (cons (car xs) (add-to-sorted-list x (cdr xs))))))
@@ -214,7 +136,6 @@ the definition of that order."
 
 (define (hetero-sorter xin xout)
   "Sort the list XIN into XOUT."
-  ;;(display ">hetero-sorter ")(display xin)(display " ")(display xout)(newline)
   (cond ((null? xin) xout)
         ((list? (car xin)) (hetero-sorter (cdr xin) (add-to-sorted-list (hetero-sort (car xin)) xout)))
         (else        (hetero-sorter (cdr xin) (add-to-sorted-list (car xin) xout)))))
@@ -223,7 +144,6 @@ the definition of that order."
 (define (hetero-sort xs)
   "Sort items in list XS. The items may be of varying type and the
 sort groups like types together. The sort should be stable."
-  ;;(display ">hetero-sort ")(display xs)(newline)
   (hetero-sorter xs '()))
 
 
@@ -234,16 +154,14 @@ a Boolean.
 
 The equal? predicate works as desired on nested lists as long as
 the elements within the lists are ordered consistently."
-  ;;(display ">dups-in? ")(display xs)(newline)
-  (cond
-   ((null? xs)                  #f)
-   ((not (list? xs))            #f)
-   ((and (= 1 (length xs))
-         (list? (car xs)))      (dups-in? (car xs)))
-   ((= 1 (length xs))           #f)
-   ((equal? (car xs) (cadr xs)) #t)
-   (else                        (or (dups-in? (car xs))
-                                    (dups-in? (cdr xs))))))
+  (cond ((null? xs)                  #f)
+        ((not (list? xs))            #f)
+        ((and (= 1 (length xs))
+              (list? (car xs)))      (dups-in? (car xs)))
+        ((= 1 (length xs))           #f)
+        ((equal? (car xs) (cadr xs)) #t)
+        (else                        (or (dups-in? (car xs))
+                                         (dups-in? (cdr xs))))))
 
 
 (define (genset xs)

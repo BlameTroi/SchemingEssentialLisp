@@ -3,68 +3,7 @@
 
 ;; Advanced Recursion.
 
-;; these are in Guile/Gcheme not Common Lisp.
-
-
-;; Support code for working through Essential Lisp.
-
-
-;; Being helpers and functions that the book mentions or
-;; needs that aren't in Guile or Scheme.
-
-
-;; I tend to paste this into working files (ch99-probs.scm)
-;; rather than setting up a module or supporting requires.
-
-
-;; Scheme doesn't have last, at least by that name.
-(define (last alist)
-  "Naive implementation of CL's LAST to get a list containing the
-final item (final cdr if you will) of ALIST."
-  (cond
-   ((empty-or-atom? alist) '())
-   (else (list (car (reverse alist))))))
-
-
-;; Last as an individual element.
-(define (last-item x)
-  "Return the last element of list X."
-  (car (reverse x)))
-
-
-;; Scheme defines list? but not atom?.
-(define (atom? x)
-  "In scheme, an atom is that which is not a list."
-  (not (list? x)))
-
-
-;; When the text asks for nil, sometimes #f makes sense, and
-;; sometimes '() does. I'll tend to use naked #f in most code
-;; but keep this around for additional clarity.
-;;
-;; Interestingly, Scheme does have nil? and it works with #f
-;; as one would expect.
-(define nil '())
-
-
-;; A synonym, I learned to use mod in other languages.  Yes,
-;; modulo is not remainder, but the misuse is baked into
-;; things. If you care about the difference, you almost
-;; certainly know to use modulo and remainder when appropriate.
-(define (mod x y)
-  (remainder x y))
-
-
-;; In chapter 4, this test started repeating itself so
-;; it made sense to factor it out. Helper functions are a
-;; focus of the chapter.
-(define (empty-or-atom? x)
-  "Test if empty list or an atom, list? is not sufficient for
-some tests."
-  (cond
-   ((not (list? x)) #t)
-   ((nil? x)        #t)
-   (else            #f)))
+;; these are in Guile Scheme not Common Lisp.
 
 
 ;; To make up for the missing alphalesserp from the text:
@@ -73,17 +12,10 @@ some tests."
 (define (symbol> x y) (string> (symbol->string x) (symbol->string y)))
 
 
-;; Ran across a need for this elsewhere and am including it in
-;; case I need it again.
-(define (rotate xs)
-  "Rotate the items in list XS by moving (car XS) to the end of XS."
-  (cond ((or (null? xs) (null? (cdr xs))) xs)
-        (else (append (cdr xs) (list (car xs))))))
-
-
 ;; For timing operations. Example (duration '(permut '(a b c))).
 ;; The operation should be quoted. The time is a pair: (seconds
 ;; since 1970 . microseconds).
+
 (define (duration x)
   "Time the duration of sexp X using time of day.
 You need to quote X."
@@ -105,25 +37,28 @@ You need to quote X."
 ;; 9.1 Write a function addto that takes an atom elt and a list of
 ;;     lists and returns the list with elt added to each of its
 ;;     sublist. Use cdr recursion.
-(define (addto elt lis)
-  "Add ELT to each list in LIS using cdr recursion."
-  (cond
-   ((null? lis) '())
-   (else (cons (cons elt (car lis)) (addto elt (cdr lis))))))
-(addto 'a '((b c d) (b q) ())) ==> ((a b c d) (a b q) (a)
+
+(define (addto x xs)
+  "Add X to each list in XS using cdr recursion."
+  (cond ((null? xs) '())
+        (else (cons (cons x (car xs)) (addto x (cdr xs))))))
+
+;; (addto 'a '((b c d) (b q) ())) ==> ((a b c d) (a b q) (a)
 
 
 ;; 9.2 Write an iterative version of addto.
-(define (addto-i elt lis)
-  "Add ELT to each list in LIS using looping constructs."
+
+(define (addto-i x xs)
+  "Add X to each list in XS using looping constructs."
   (let ((res '()))
-    (while (not (null? lis))
+    (while (not (null? xs))
       (set! res (if (null? res)
-                    (cons elt (car lis))
-                    (list res (cons elt (car lis)))))
-      (set! lis (cdr lis)))
+                    (cons x (car xs))
+                    (list res (cons x (car xs)))))
+      (set! xs (cdr xs)))
     res))
-(addto-i 'a '((b c d) (b q) ())) ==> ((a b c d) (a b q) (a))
+
+;; (addto-i 'a '((b c d) (b q) ())) ==> ((a b c d) (a b q) (a))
 
 
 ;; 9.3 An exigesis on processing for powerset. I went through this
@@ -181,16 +116,14 @@ You need to quote X."
 ;; The advice "get it readable, get it right, get it fast" is
 ;; still valid. For most work, don't even think about optimization
 ;; unless you find things too slow after they are running correctly.
-;;
-;; See ch09-experiments.scm for a scheme runnable version of the
-;; book solution, code snippets, and the benchmark function duration.
-;;
+
 (define (permut xs)
   "Return a list all the possible permutations of elements
 of list XS. Duplicate elements are not explicitly handled."
   (cond ((null? xs)       '())
         ((null? (cdr xs)) xs)
         (else             (ripple (car xs) (permut (cdr xs))))))
+
 (define (ripple x xs)
   "Given an element X and a list of lists XS, return a list where
 each list in XS had element X inserted into it in each possible
@@ -207,6 +140,7 @@ produces lists '(a 1 2 3) '(1 a 2 3) '(1 2 a 3) and '(1 2 3 a)."
               (set! res (append res (ripple-r x (car xs) '() '())))
               (set! xs (cdr xs)))
             res))))))
+
 (define (ripple-r x xs ys accum)
   "Given an element X and a starting list XS, return a list of
 versions of XS with X inserted at each possible position. For
@@ -217,63 +151,73 @@ The successive cars of XS are moved to YS, which should be
 empty at the first call, and XS is reduced by successive cdrs.
 Each result is a concatenation of YS X and XS."
   (cond
-   ((and (null? xs) (null? ys)) (list x))
-   ((null? xs)                  (append accum (list (append ys (list x)))))
-   (else                        (ripple-r
-                                 x
-                                 (cdr xs)
-                                 (append ys (list (car xs)))
-                                 (append accum (list (append ys (list x) xs)))))))
+   ((and (null? xs)
+         (null? ys)) (list x))
+   ((null? xs)       (append accum (list (append ys (list x)))))
+   (else             (ripple-r
+                      x
+                      (cdr xs)
+                      (append ys (list (car xs)))
+                      (append accum (list (append ys (list x) xs)))))))
+
+;; (permut '(a b c)) ==> ((a b c) (b a c) (b c a) (a c b) (c a b) (c b a))
+;; (permut '(1 0))   ==> ((1 0) (0 1))
+
 
 ;; 9.5 Define function countatoms that accepts one argument that
 ;;     is a list, and returns the number of atoms contained in
 ;;     the list and any nested lists.
+
 (define (countatoms xs)
   "How many atoms are in all levels of XS?"
-  (cond
-   ((null? xs) 0)
-   ((not (list? (car xs))) (1+ (countatoms (cdr xs))))
-   (else (+ (countatoms (car xs)) (countatoms (cdr xs))))))
-(countatoms '(a b (c d e) () (f g (h) () (i)))) ==> 9
+  (cond ((null? xs) 0)
+        ((not (list? (car xs))) (1+ (countatoms (cdr xs))))
+        (else (+ (countatoms (car xs)) (countatoms (cdr xs))))))
+
+;; (countatoms '(a b (c d e) () (f g (h) () (i)))) ==> 9
 
 
 ;; 9.6 Define function delete-in that accepts an item and a list,
 ;;     returning the list with every occurence of item removed.
+
 (define (delete-in x xs)
   "Remove every X from XS."
-  (cond
-   ((null? xs)          '())
-   ((list? (car xs))    (cons (delete-in x (car xs)) (delete-in x (cdr xs))))
-   ((equal? x (car xs)) (delete-in x (cdr xs)))
-   (else                (cons (car xs) (delete-in x (cdr xs))))))
-(delete-in 'a '(a b b a (c b a))) ==> (b b (c b))
-(delete-in 'a '(a b (d (c a)) d a)) ==> (b (d (c)) d)
-(delete-in 'a '()) ==> ()
+  (cond ((null? xs)          '())
+        ((list? (car xs))    (cons (delete-in x (car xs)) (delete-in x (cdr xs))))
+        ((equal? x (car xs)) (delete-in x (cdr xs)))
+        (else                (cons (car xs) (delete-in x (cdr xs))))))
+
+;; (delete-in 'a '(a b b a (c b a))) ==> (b b (c b))
+;; (delete-in 'a '(a b (d (c a)) d a)) ==> (b (d (c)) d)
+;; (delete-in 'a '()) ==> ()
+;; (delete-in 'a '(a)) ==> ()
 
 
 ;; 9.7 Define function flatten that takes a list and returns a list
 ;;     of all the atoms that appear at any level within the argument
 ;;     list.
+
 (define (flatten xs)
   "Return a list holding every atom found in XS."
-  (cond
-   ((null? xs)        '())
-   ((not (list? (car xs))) (append (list (car xs)) (flatten (cdr xs))))
-   (else                   (append (flatten (car xs)) (flatten (cdr xs))))))
-(flatten '(a b c)) ==> (a b c)
-(flatten '(a (b (c d e) f (g)))) ==> (a b c d e f g)
+  (cond ((null? xs)        '())
+        ((not (list? (car xs))) (append (list (car xs)) (flatten (cdr xs))))
+        (else                   (append (flatten (car xs)) (flatten (cdr xs))))))
+
+;; (flatten '(a b c)) ==> (a b c)
+;; (flatten '(a (b (c d e) f (g)))) ==> (a b c d e f g)
 
 
 ;; 9.8 Define function skeleton that removes all the non-nil atoms
 ;;     from a list, returning the list structure.
+
 (define (skeleton xs)
   "Return the structure of list XS with all non-nil atoms removed."
-  (cond
-   ((null? xs)  '())
-   ((not (list? (car xs))) (skeleton (cdr xs)))
-   (else                   (cons (skeleton (car xs)) (skeleton (cdr xs))))))
-(skeleton '(a b (c d) e (f (g)))) ==> (() (()))
-(skeleton '()) ==> ()
+  (cond ((null? xs)  '())
+        ((not (list? (car xs))) (skeleton (cdr xs)))
+        (else                   (cons (skeleton (car xs)) (skeleton (cdr xs))))))
+
+;; (skeleton '(a b (c d) e (f (g)))) ==> (() (()))
+;; (skeleton '()) ==> ()
 
 
 ;; 9.9 Define function logic that takes a list representing a logical
@@ -295,6 +239,7 @@ Each result is a concatenation of YS X and XS."
 ;;
 ;; I also did a bit more than the assignment warranted in terms of
 ;; helpers for validation, but this is more readable to me.
+
 (define (logic-operator-binary? x)
   "Is X a binary operator (AND or OR)?"
   (or (equal? x 'V) (equal? x '&)))
@@ -330,19 +275,20 @@ basic operators NOT, AND, and OR (- & V)."
            (logic-operator-unary? (car xs)))   (not (logic (cdr xs))))
      ((and (odd? (length xs))
            (logic-operator-binary? (cadr xs))) (logic-do-binary
-                                               (logic (car xs))
-                                               (cadr xs)
-                                               (logic (cddr xs))))
+                                                (logic (car xs))
+                                                (cadr xs)
+                                                (logic (cddr xs))))
      (else (error "logic -- expression illegal at " xs))))
-    (else (error "logic -- expected boolean got " xs))))
+   (else (error "logic -- expected boolean got " xs))))
 
-(logic '((- #f) & (#t & (#f V #t)))) ==> #t
-(logic '(- #f)) ==> #t
-(logic '(- #t)) ==> #f
-(logic '(#t & (- #f))) ==> #t
-(logic #f) ==> #f
-(logic 'x) ==> error
-(logic '(#t + #f)) ==> error
+;; (logic '((- #f) & (#t & (#f V #t)))) ==> #t
+;; (logic '(- #f)) ==> #t
+;; (logic '(- #t)) ==> #f
+;; (logic '(#t & (- #f))) ==> #t
+;; (logic #f) ==> #f
+;; (logic 'x) ==> error
+;; (logic '(#t + #f)) ==> error
+
 
 ;; 9.10 Define binary-search on a binary tree of numbers. Return
 ;;      a boolean if the requested key is found.
@@ -353,6 +299,7 @@ basic operators NOT, AND, and OR (- & V)."
 ;;
 ;; If you use a lieral () in the definition of the tree, null? works
 ;; as it should.
+
 (define nil '())
 
 (define tree1 '(8 (4 (2 nil nil) nil) (12 nil nil))) ;; 4-8(root)-12
@@ -367,10 +314,10 @@ Null pointers must be coded as empty lists ()."
    ((and (> x (car xs)) (not (null? (caddr xs))))  (binary-search x (caddr xs)))
    (else #f)))
 
-(binary-search 8 tree2) ==> #t
-(binary-search 4 tree2) ==> #t
-(binary-search 9 tree2) ==> #f
-(binary-search 2 tree2) ==> #t
+;; (binary-search 8 tree2) ==> #t
+;; (binary-search 4 tree2) ==> #t
+;; (binary-search 9 tree2) ==> #f
+;; (binary-search 2 tree2) ==> #t
 
 
 ;; 9.11 Define bsearch to do a binary search through an a-list
@@ -380,10 +327,12 @@ Null pointers must be coded as empty lists ()."
 ;;
 ;; I've seen alists in elisp as dotted pairs, so I'm unsure about
 ;; terminology but I'll roll with the text for now.
+
 (define alist-tree
   '((55 25 70) (25 12 30) (12 6 15) (6 () 7) (7 () ())
     (15 () ()) (30 () ()) (70 62 80) (62 60 68) (60 () ())
     (68 () ()) (80 () 99) (99 () ())))
+
 
 (define (bsearch k t)
   "Search for key numeric key K in binary tree T stored as an
@@ -394,7 +343,7 @@ first node of t is the root."
    ((null? t) #f)
    ((null? k) #f)
    ;; do binary search starting from the root node
-   (else bsearch-r k t (car t))))
+   (else (bsearch-r k t (car t)))))
 
 (define (bsearch-r k t n)
   "Recursively search for K in association list T from node N."
@@ -414,6 +363,9 @@ first node of t is the root."
    ((< k (car n))   (bsearch-r k t (assoc (cadr n) t)))
    (else            (bsearch-r k t (assoc (caddr n) t)))))
 
+;; (bsearch 55 alist-tree) ==> #t
+;; (bsearch 81 alist-tree) ==> #f
+
 
 ;; 9.12 Optional: determine if a list is a generalized set. Done
-;;      separately.
+;;      separately. See ch09-genset.scm.

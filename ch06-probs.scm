@@ -4,73 +4,8 @@
 ;; And now looping under numeric control or by
 ;; user input.
 
-;; these are in Guile/Gcheme not Common Lisp.
+;; These are in Guile Scheme not Common Lisp.
 
-
-;; Support code for working through Essential Lisp.
-
-
-;; Being helpers and functions that the book mentions or
-;; needs that aren't in Guile or Scheme.
-
-
-;; I tend to paste this into working files (ch99-probs.scm)
-;; rather than setting up a module or supporting requires.
-
-
-;; Scheme doesn't have last, at least by that name.
-(define (last alist)
-  "Naive implementation of CL's LAST to get a list containing the
-final item (final cdr if you will) of ALIST."
-  (cond
-   ((empty-or-atom? alist) '())
-   (else (list (car (reverse alist))))))
-
-
-;; Last as an individual element.
-(define (last-item x)
-  "Return the last element of list X."
-  (car (reverse x)))
-
-
-;; Scheme defines list? but not atom?.
-(define (atom? x)
-  "In scheme, an atom is that which is not a list."
-  (not (list? x)))
-
-
-;; When the text asks for nil, sometimes #f makes sense, and
-;; sometimes '() does. I'll tend to use naked #f in most code
-;; but keep this around for additional clarity.
-;;
-;; Interestingly, Scheme does have nil? and it works with #f
-;; as one would expect.
-(define nil '())
-
-
-;; A synonym, I learned to use mod in other languages.  Yes,
-;; modulo is not remainder, but the misuse is baked into
-;; things. If you care about the difference, you almost
-;; certainly know to use modulo and remainder when appropriate.
-(define (mod x y)
-  (remainder x y))
-
-
-;; In chapter 4, this test started repeating itself so
-;; it made sense to factor it out. Helper functions are a
-;; focus of the chapter.
-(define (empty-or-atom? x)
-  "Test if empty list or an atom, list? is not sufficient for
-some tests."
-  (cond
-   ((not (list? x)) #t)
-   ((nil? x)        #t)
-   (else            #f)))
-
-
-;;;
-;;; And now the problems
-;;;
 
 ;; 6.1 Write a function factorial, taking one argument and
 ;;     returning its factorial using a loop form.
@@ -80,19 +15,18 @@ some tests."
 ;; https://www.gnu.org/software/guile/manual/html_node/while-do.html
 ;; for the extra forms.
 ;;
-;; I prefer the while form's clarity over do. A named let is probably
-;; better but this seems level appropriate for this far into the
-;; text.
+;; I prefer the while form's clarity over do. Both are introduced
+;; later in the text.
+
 (define (factorial n)
   "Non recurisvely calculate the factorial of N."
   (let ((f 1) (i 1))
-    (display i)(display " ")(display f)(newline)
     (while (< i n)
       (set! i (1+ i))
-      (set! f (* f i))
-      (display i)(display " ")(display f)(newline))
+      (set! f (* f i)))
     f))
-(factorial 5) ==> 120
+
+;; (factorial 5) ==> 120
 
 
 ;; 6.2 is an exegesis of a looping function. I do enough of that
@@ -102,6 +36,7 @@ some tests."
 ;; 6.3 Write a function num-sum taking one argument, an integer
 ;;     greater than zero. Accept that many number inputs from the
 ;;     user and report the sum of the inputs.
+
 (define (num-sum n)
   "Report the sum of N numbers entered by the user."
   (let ((sum 0))
@@ -123,6 +58,7 @@ some tests."
 ;;
 ;; (nth-item 3 '(1 2 3)) ==> 3
 ;; (nth-item 3 '(1 2))   ==> ()
+
 (define (nth-item n xs)
   "Return the Nth item from XS or () if N is out of bounds."
   (cond
@@ -134,11 +70,12 @@ some tests."
       (set! xs (cdr xs))
       (set! n (1- n)))
     (car xs))))
-(nth-item 3 '(1 2 3)) ==> 3
-(nth-item 2 '(fred wilma betty barney)) ==> wilma
-(nth-item 10 '(one two)) ==> ()
-(nth-item -1 '(positive only)) ==> ()
-(nth-item 0 '(seriously now)) ==> ()
+
+;; (nth-item 3 '(1 2 3)) ==> 3
+;; (nth-item 2 '(fred wilma betty barney)) ==> wilma
+;; (nth-item 10 '(one two)) ==> ()
+;; (nth-item -1 '(positive only)) ==> ()
+;; (nth-item 0 '(seriously now)) ==> ()
 
 
 ;; 6.5 Write create-list to take one numeric argument and
@@ -149,6 +86,7 @@ some tests."
 ;; of either would be to insert at head of list always and
 ;; reverse the list when complete, but the counting down
 ;; function reads the best.
+
 (define (create-list-cd n)
   "Create a list of integers 1 to N via counting down."
   (let ((xs '()))
@@ -156,7 +94,9 @@ some tests."
       (set! xs (cons n xs))
       (set! n (1- n)))
     xs))
-(create-list-cd 8) ==> (1 2 3 4 5 6 7 8)
+
+;; (create-list-cd 8) ==> (1 2 3 4 5 6 7 8)
+
 (define (create-list-cu n)
   "Create a list of integers 1 to N via counting up."
   (let ((xs '()) (i 1))
@@ -164,12 +104,14 @@ some tests."
       (set! xs (append xs (list i)))
       (set! i (1+ i)))
     xs))
-(create-list-cu 4) ==> (1 2 3 4)
+
+;; (create-list-cu 4) ==> (1 2 3 4)
 
 
 ;; 6.6 Write add-negs to take one argument, a negative number,
 ;;     and return a sum of the negative numbers from -1 down
 ;;     to the argument.
+
 (define (add-negs n)
   "Sum the negative numbers from -1 down to N."
   (let ((sum 0) (i -1))
@@ -177,40 +119,46 @@ some tests."
       (set! sum (+ sum i))
       (set! i (1- i)))
     sum))
-(add-negs -3) ==> -6
+
+;; (add-negs -3) ==> -6
 
 
 ;; 6.7 Write next-prime to take one integer argument and return
 ;;     the prime number greater than or equal to the argument.
 ;;     next-prime of 7 is 7, next-prime of 6 is also 7. A
 ;;     predicate primep (prime? here) is provided in the text.
+
 (define (prime? n)
   "Is N prime. From the text Essential Lisp."
   (cond ((< n 4)   #t)
         ((even? n) #f) ;; added
         (else      (psearch n))))
+
 (define (psearch n)
   "Grind to find if N is prime. From the text Essential Lisp."
-  ;; rewrite of the loop/return in the text
+  ;; rewrite of the text's use of loop/return
   (let ((count 2) (stop (sqrt n)) (res #t))
     (while (and res (<= count stop))
       (if (zero? (remainder n count))
           (set! res #f)
           (set! count (1+ count))))
     res))
+
 (define (next-prime n)
   "Return the next prime equal to or greater thna N."
   (while (not (prime? n))
     (set! n (1+ n)))
   n)
-(next-prime 6) ==> 7
-(next-prime 100) ==> 101
-(next-prime 1000) ==> 1009
+
+;; (next-prime 6) ==> 7
+;; (next-prime 100) ==> 101
+;; (next-prime 1000) ==> 1009
 
 
 ;; 6.8 Write add-threes taking one argument and returns the
 ;;     sum of all the numbers from 0 to the argument that
 ;;     are divisible by three.
+
 (define (add-threes n)
   "Return the sum of all the numbers from 0 to N that are
 evenly divisible by three."
@@ -219,18 +167,22 @@ evenly divisible by three."
       (set! i (1+ i))
       (if (zero? (remainder i 3)) (set! sum (+ sum i))))
     sum))
-(add-threes 13) ==> 30
-(add-threes 4) ==> 3
-(add-threes -1) ==> 0
-(add-threes 5) ==> 3
-(add-threes 6) ==> 9
+
+;; (add-threes 13) ==> 30
+;; (add-threes 4) ==> 3
+;; (add-threes -1) ==> 0
+;; (add-threes 5) ==> 3
+;; (add-threes 6) ==> 9
 
 
 ;; 6.9 Write read-square taking no arguments. Prompt the user to enter
 ;;     a number, print its square, and repeat until the user enters
 ;;     something that is not a number.
+;;
 ;; Oddity: (read) without readline enabled does't handle leading minus
-;; sign. Geiser and readline don't play nice together.
+;; sign. Geiser and readline don't play nice together. This is your
+;; reminder to test anything using read in a stand alone repl session.
+
 (define (read-square)
   "Square numbers entered until a non-number is entered."
   (let ((looping #t) (this 0))
@@ -246,6 +198,7 @@ evenly divisible by three."
 ;; 6.10 Write read-sum. You guessed it, no arguments, prompt for
 ;;      input and stop and report the sum once a non-number
 ;;      has been entered.
+
 (define (read-sum)
   "Sum numbered entered until a non-number is entered."
   (let ((sum 0) (n 0) (looping #t))
@@ -261,9 +214,8 @@ evenly divisible by three."
 ;; 6.11 Write running-list. Take no arguments, accept input
 ;;      from the user until they enter a number. Print out
 ;;      the items in the order they were entered each pass
-;;      through the loop. As with earlier exercises, input
-;;      via (read) doesn't work well in Geiser so test in
-;;      a terminal session.
+;;      through the loop.
+
 (define (running-list)
   "Accumulate user entry in a list until a number is
 entered as a terminator."
@@ -289,6 +241,7 @@ entered as a terminator."
 ;;        input.
 ;;      Use only one let local variable for the input. Return
 ;;      'done if the user enters a non-number.
+
 (define (diff-quot n)
   "Loops and hoops for practice."
   (let ((x 0))
@@ -308,6 +261,7 @@ entered as a terminator."
 ;;      balance and total withdrawals and report them in
 ;;      a list when the user enters 'statement'. Overdraft
 ;;      handling is not specified.
+
 (define (withdrawals b)
   "Simple savings account withdrawal processing."
   (let ((i 0) (w 0)) ;; input, total withdrawals
