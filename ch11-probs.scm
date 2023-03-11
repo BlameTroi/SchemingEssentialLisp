@@ -8,16 +8,19 @@
 
 ;; This chapter introduces Property Lists and Arrays.
 ;;
-;; See the big block of comments and functions following the
-;; array discussion for my thoughts on property lists.
+;; There are syntactic and some symantic differences between Common
+;; Lisp and Scheme in both areas. The chapter opens with Property
+;; Lists and I opted to create a small set of wrapper and support
+;; functions. It's a thin wrapper.
 ;;
-;; Arrays are also introduced in this chapter. There may be some
-;; syntactic and semantic differences with Scheme, which I know
-;; has vectors, some form of array, and then a couple of SRFIs
-;; offering additional array support.
-;;
-;; I've tried to avoid explicitly using any SRFI to keep the
-;; environment small and simple.
+;; The chapter finishes with Arrays, and while no wrapper functions
+;; were needed, some semantic differences need to be noted and I do
+;; so near problem 11.9.
+
+
+;;;
+;;; Property Lists
+;;;
 
 
 ;; Property lists predate Common Lisp and were not consistently
@@ -286,3 +289,292 @@ A boolean with #f grouping to the front."
 (load-properties 'bam-bam '( adult #f ))
 
 ;; (listsort '(barbie bam-bam ken pebbles)) ==> ((barbie ken) (bam-bam pebbles))
+
+
+;; 11.7 Write function encode-tree to use properties to buid the
+;;      tree structure from chapter 9 by converting the alist
+;;      representation. Each node will have a value, a lesser, and
+;;      a greater property, where lesser and greater reference
+;;      other nodes.
+;;
+;;      Function should be recursive and return the root node.
+
+;; Solution
+(define (encode-tree root alist)
+  "Convert binary tree association list into a property based
+structure."
+
+  (let ((node (newatom 'node)) (curr (assoc root alist)))
+    (putprop node (car curr) 'value)
+    (putprop node '() 'lesser)
+    (putprop node '() 'greater)
+    (if (not (null? (cadr curr)))
+        (putprop node (encode-tree (cadr curr) alist) 'lesser))
+    (if (not (null? (caddr curr)))
+        (putprop node (encode-tree (caddr curr) alist) 'greater))
+    node))
+
+;; Tree definition from chapter 9 problem set.
+(define alist-tree
+  '((55 25 70) (25 12 30) (12 6 15) (6 () 7) (7 () ())
+    (15 () ()) (30 () ()) (70 62 80) (62 60 68) (60 () ())
+    (68 () ()) (80 () 99) (99 () ())))
+
+;; Set up arguments for encode-tree.
+(define alist-root (car (car alist-tree)))
+
+;; testing--create the new tree from the association list
+;; copied from chapter 9.
+(define encoded-tree (encode-tree alist-root alist-tree))
+
+;; Verify testing
+(define (display-node node)
+  "Display a node in the encoded-tree, it's symbol, value, lesser,
+greater properties."
+
+  (display "[")(display node)(display ":")
+  (display " value ")(display (get node 'value))
+  (display " lesser ")(display (get node 'lesser))
+  (display " greater ")(display (get node 'greater))(display "]"))
+
+(define (path-to val tree)
+  "Print path through binary tree built by encode-tree."
+
+  (display "Path from ")(display (get tree 'value))(display " to ")(display val)(newline)
+  (let ((curr tree) (res '()))
+    (while (not (null? curr))
+      (display-node curr)(newline)
+      (cond ((= val (get curr 'value))
+             (set! res curr)
+             (set! curr '()))
+            ((< val (get curr 'value))
+             (set! curr (get curr 'lesser)))
+            ((> val (get curr 'value))
+             (set! curr (get curr 'greater)))
+            (else (display "ERROR IN TREE!")(newline)(set! curr '()))))
+    (if (null? res)
+        (begin (display "not found")(newline))
+        (begin (display "Found at: ")(display-node res)(newline)))
+    res))
+
+;; And the tree is built properly ...
+;;
+;; (path-to 25 encoded-tree)
+;; Path from 55 to 25
+;; [node1486: value 55 lesser node1487 greater node1493]
+;; [node1487: value 25 lesser node1488 greater node1492]
+;; Found at: [node1487: value 25 lesser node1488 greater node1492]
+;;
+;; (path-to 77 encoded-tree)
+;; Path from 55 to 77
+;; [node1486: value 55 lesser node1487 greater node1493]
+;; [node1493: value 70 lesser node1494 greater node1497]
+;; [node1497: value 80 lesser () greater node1498]
+;; not found
+
+
+;; 11.8 Using the structure created in 11.7, rewrite binary-search
+;;      from 9.10.
+;;
+;; I should have looked ahead when I was testing the solution to 11.7.
+;; But here's a recursive version that doesn't include the trace
+;; display.
+
+(define (binary-search key root)
+  "Search the binary tree created by 'encode-tree' from its ROOT atom
+for a particular KEY. Return node or #f."
+
+  (cond ((null? root) #f)
+        ((= key (get root 'value)) root)
+        ((< key (get root 'value)) (binary-search key (get root 'lesser)))
+        (else (binary-search key (get root 'greater)))))
+
+;; (binary-search 77 encoded-tree) ==> #f
+;; (binary-search 55 encoded-tree) ==> node1486 in this run
+;; (binary-search 70 encoded-tree) ==> node1498 in this run
+
+
+;;;
+;;; Arrays
+;;;
+
+;; Scheme has both arrays and vectors, and I believe in Guile's case
+;; vectors are the foundation and arrays are an abstraction over
+;; them.
+;;
+;; The syntax for accessing arrays involves an odd looking function
+;; aref. Depending upon its context it either retrieves an element
+;; or provides a pointer to an element so that it may be updated.
+;;
+;; Access an element: (aref arr 3)
+;;
+;; Update an element: (setf (aref arr 3) 7)
+;;
+;; Scheme offers array-ref and array-set!
+;;
+;; Access an element: (array-ref arr 3)
+;;
+;; Update an element: (array-set! arr 3 7)
+;;
+;; Array indices count from 0.
+
+
+;; 11.9 Write arraysum that takes one parameter, the length of an
+;;      array called data. Sum all the numbers in the array.
+
+(define (arraysum size)
+  "Return the sum of all the elements in array 'data' assuming SIZE
+is the correct size of the array."
+  (cond ((= 0 size) (array-ref data size))
+        (else (+ (array-ref data (1- size)) (arraysum (1- size))))))
+
+;; setup for testing
+(define data (make-array 0 10))
+(define (init-array size)
+  (let ((i 0))
+    (while (< i size)
+      (array-set! data i i)
+      (set! i (1+ i)))))
+(load-array 10)
+
+;; (arraysum 10) ==> 45
+
+
+;; 11.10 Write funciton array-switch that takes an array name and
+;;       its length. Replace all numeric elements in the array
+;;       with its addative inverse (4 becomes -4, etc). Return
+;;       done when complete.
+
+(define (array-switch a n)
+  "Replace each element of array A with its additive inverse. Array
+holds N elements. Returns 'done when finished."
+
+  (while (> n 0)
+    (set! n (1- n))
+    (array-set! a (* -1 (array-ref a n)) n))
+  'done)
+
+;; testing
+(define data (list->array 1 '(10 9 3 -8 -17 4)))
+(array-switch data (array-length data))
+
+;; (display data) ==> #(-10 -9 -3 8 17 -4)
+
+
+;; 11.11 Write array-search to take a name of an array and its
+;;       size and return in order a list of any "winners" found in
+;;       the array. A winner is any element with a score property
+;;       of won.
+
+(define (array-search a n)
+  "Search array A of N elements and return a list holding any
+elements with a score property of won."
+
+  (let ((res '()))
+    (do ((i 0 (1+ i)))
+        ((= i n))
+      (if (equal? (get (array-ref a i) 'score) 'won)
+          (set! res (cons (array-ref a i) res))))
+    (reverse res)))
+
+;; test setup
+(load-properties 'fred '(score won))
+(load-properties 'wilma '(score lost))
+(load-properties 'george '(score lost))
+(load-properties 'jetson '(score won))
+(define score-array (list->array 1 '(fred wilma george jetson)))
+
+;; test
+;; (array-search score-array 4) ==> (fred jetson)
+
+
+;; 11.12 Define a function count-runs that returns the total runs
+;;       scored by players in the stats array. The function takes
+;;       the size of the stats array as its argument. Each element
+;;       of the array is a player name and any runs scored are in
+;;       the runs property.
+
+(define (count-runs n)
+  "Count the number of runs scored by all players in the stats
+array. The array has N elements."
+
+  (cond ((<= n 0) 0)
+        (else (+ (get (array-ref stats (1- n)) 'runs) (count-runs (1- n))))))
+
+;; test setup
+(load-properties 'fred '(runs 0))
+(load-properties 'tom '(runs 7))
+(load-properties 'george '(runs 18))
+(load-properties 'stella '(runs 5))
+
+(define stats (list->array 1 '(fred tom george stella)))
+
+;; test
+;; (count-runs 4) ==> 30
+
+
+;; 11.13 Write function sort-by-sex that takes an array name and size
+;;       and returns a listing of the elements grouped by sex, with
+;;       the first group a list of females, and the second a group of
+;;       the males.
+;;
+;; Yeah, sorry, the text is from 1987. I've added a third grouping
+;; for others in a small nod to progress.
+
+(define (sort-by-sex a n)
+  "Group array A elements by the sex property, with females in the
+first group, and males in the second. A has N elements. Order is
+preserved."
+
+  (let ((females '()) (males '()) (others '()))
+    (do ((i 0 (1+ i)))
+        ((= i n)
+         (list (reverse females) (reverse males) (reverse others)))
+      (cond ((equal? 'female (get (array-ref a i) 'sex))
+             (set! females (cons (array-ref a i) females)))
+            ((equal? 'male (get (array-ref a i) 'sex))
+             (set! males (cons (array-ref a i) males)))
+            (else
+             (set! others (cons (array-ref a i) others)))))))
+
+;; test setup
+(load-properties 'george '(sex male))
+(load-properties 'seven '(sex female))
+(load-properties 'gary '(sex male))
+(load-properties 'frank-n-furter '(sex yes))
+(load-properties 'janet '(sex female))
+
+(define sex-sort-array (list->array 1 '(george seven gary frank-n-furter janet)))
+
+;; test
+;; (sort-by-sex sex-sort-array 5)) ==> ((seven janet) (george gary) (frank-n-furter))
+
+
+;; 11.14 Write function matrix-add taking as arguments the names of
+;;       two arrays, the number of rows, and number of columns. It
+;;       should create and return a new array that holds the result.
+
+(define (matrix-add a b r c)
+  "Add matrices A and B of dimensions R and C. Return the result
+matrix."
+
+  (let
+      ((res (make-array 0 r c))
+       (i 0) (j 0)
+       (f (lambda (x y) (+ (array-ref a x y) (array-ref b x y)))))
+       (while (< i r)
+         (set! j 0)
+         (while (< j c)
+           (array-set! res (f i j) i j)
+           (set! j (1+ j)))
+         (set! i (1+ i)))
+  res))
+
+;; setup and test verification
+
+(define arr1 (list->array 2 '((1 2 3) (4 5 6))))
+(define arr2 (list->array 2 '((3 2 1) (6 5 4))))
+(define resx (matrix-add arr1 arr2 2 3))
+;; arr1     #2((1 2 3) ( 4  5  6))
+;; arr2     #2((3 2 1) ( 6  5  4))
+;; resx ==> #2((4 4 4) (10 10 10))

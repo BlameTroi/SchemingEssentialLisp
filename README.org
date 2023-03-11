@@ -75,6 +75,9 @@ Scheme doesn't have the loop form. Scheme expects you to use recursion. The best
 
 (while (test) body...)
 
+I find the Scheme do form to be frustrating. I think of do in terms
+of while, but the Scheme do is a do until.
+
 See ch06-probs.scm for examples.
 
 ** Environment
@@ -99,6 +102,13 @@ Notes in any of the .scm files sometimes ramble as I describe learnings or chang
 Each chapter's problems and solutions are in files named ch99-probs.scm. Some problems, particularly end of chapter optional problems, are complex enough that I put them in their own files. ch05-tictac.scm is one such file.
 
 In addition to the chapter problem files, there are scheming.scm which holds definitions for things the text uses that aren't directly in Scheme, and doodling.scm which is just a scratch pad of code snippets as I work through the text.
+
+File property-list-helpers.scm is a thin wrapper over the Guile
+functions for accessing atom properties plus some support functions
+for testing. Some of the other schemes use a similar syntax to the
+Common Lisp presented in the text, but Guile does not. The mapping
+is pretty much one-to-one and using these wrappers should help
+anyone trying this effort with say Chez or MIT.
 
 ** Licensing
 
